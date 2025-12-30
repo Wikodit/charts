@@ -8,11 +8,29 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
+{{- if or .Values.webservice.service.annotations .Values.webservice.metrics.enabled }}
+  annotations:
+{{- if .Values.webservice.metrics.enabled }}
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.webservice.metrics.port }}"
+    prometheus.io/path: "{{ .Values.webservice.metrics.path }}"
+{{- end }}
+{{- with .Values.webservice.service.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }}
 spec:
   ports:
-    - port: 80
+    - name: http
+      port: {{ .Values.webservice.service.port | default 80 }}
       protocol: TCP
       targetPort: {{ .Values.webservice.port }}
+{{- if .Values.webservice.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.webservice.metrics.port }}
+      protocol: TCP
+      targetPort: {{ .Values.webservice.metrics.port }}
+{{- end }}
   selector:
     app: {{ template "name" . }}
     release: {{ .Release.Name }}

@@ -4,37 +4,106 @@ general:
   sealedSecrets: false
 
 webservice:
-  image:
+  # Container image (required)
+  image: ""
   imagePullPolicy: Always
+  
+  # Private registry authentication
   imagePullAuth:
     registry: ""
     username: ""
     password: ""
-    # sealedSecrets must be enabled
+    # sealedSecrets must be enabled to use encrypted
     encrypted: ""
-  # command: []
-  # args: []
+  
+  # Override container command and args
+  # command:
+  #   - /bin/sh
+  #   - -c
+  # args:
+  #   - "echo hello"
+  
+  # Ingress hosts
   hosts: []
-  # - www.hostname.tld
+    # - www.hostname.tld
+  
+  # Additional ingress paths (beyond the default /)
   additionalPaths: []
+    # - path: /api
+    #   pathType: Prefix
+    #   backend:
+    #     service:
+    #       name: api-service
+    #       port:
+    #         number: 8080
+  
   replicas: 1
   port: 80
+  
   service:
     enabled: true
+    port: 80
+    annotations: {}
+      # service.beta.kubernetes.io/aws-load-balancer-type: nlb
+  
+  # Prometheus metrics configuration
+  metrics:
+    enabled: false
+    port: 9090
+    path: /metrics
+  
   ingress:
     enabled: true
+    className: ""
+      # nginx, traefik, etc.
+    tlsAcme: true
     annotations: {}
       # nginx.ingress.kubernetes.io/proxy-body-size: 200m
       # nginx.ingress.kubernetes.io/auth-realm: Authentication Required
       # nginx.ingress.kubernetes.io/auth-secret: basic-auth
       # nginx.ingress.kubernetes.io/auth-type: basic
+  
+  # Additional labels for pods
   additionalLabels: {}
+    # app.kubernetes.io/component: frontend
+  
+  # Pod annotations
   annotations: {}
+    # co.elastic.logs/enabled: "true"
+  
+  # Additional containers in the same pod
   additionalContainers: []
+    # - name: sidecar
+    #   container:
+    #     image: busybox
+    #     command: ["sleep", "infinity"]
+    #   env:
+    #     plaintext:
+    #       SIDECAR_VAR: value
+    #     secret:
+    #       SIDECAR_SECRET: value
+  
+  # Init containers
   initContainers: []
-    # mysql-client: "true"
+    # - name: init-db
+    #   container:
+    #     image: busybox
+    #     command: ["sh", "-c", "echo initializing..."]
+    #   env:
+    #     plaintext:
+    #       INIT_VAR: value
+  
+  # Pod-level security context
   securityContext: {}
+    # runAsUser: 1000
+    # runAsGroup: 1000
+    # fsGroup: 1000
+  
+  # Container-level security context
   containerSecurityContext: {}
+    # allowPrivilegeEscalation: false
+    # readOnlyRootFilesystem: true
+  
   resources: {}
     # requests:
     #   memory: "512Mi"
@@ -42,29 +111,90 @@ webservice:
     # limits:
     #   memory: "1Gi"
     #   cpu: "500m"
+  
   hostAliases: []
-  # - ip: "127.0.0.1"
-  #   hostnames:
-  #     - www.hostname.tld
+    # - ip: "127.0.0.1"
+    #   hostnames:
+    #     - www.hostname.tld
 
   dnsConfig: {}
-  #  nameservers:
-  #    - 10.3.0.10
+    # nameservers:
+    #   - 10.3.0.10
+    # searches:
+    #   - my-namespace.svc.cluster.local
       
+  # Deployment strategy
   strategy: {}
+    # type: RollingUpdate
+    # rollingUpdate:
+    #   maxUnavailable: 1
+    #   maxSurge: 0
+  
   revisionHistoryLimit: ""
+  
+  # Graceful shutdown timeout (seconds)
+  terminationGracePeriodSeconds: ""
+    # 30
+  
   livenessProbe: {}
+    # httpGet:
+    #   path: /health
+    #   port: 80
+    # initialDelaySeconds: 30
+    # periodSeconds: 10
+  
   readinessProbe: {}
+    # httpGet:
+    #   path: /ready
+    #   port: 80
+    # initialDelaySeconds: 5
+    # periodSeconds: 5
 
+  # Environment variables
   env:
     plaintext: {}
-    #  PLAINTEXT_VAR: value 
-
+      # PLAINTEXT_VAR: value
     # If using general.sealedSecrets, encrypted value must be used for secret
     secret: {}
-    #  SECRET_VAR: value or encryptedValue
+      # SECRET_VAR: value or encryptedValue
 
   nodeSelector: {}
+    # kubernetes.io/os: linux
+  
   affinity: {}
+    # nodeAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     nodeSelectorTerms:
+    #       - matchExpressions:
+    #           - key: topology.kubernetes.io/zone
+    #             operator: In
+    #             values:
+    #               - eu-west-1a
+  
+  # Persistent storage (creates PVC)
   storage: {}
+    # Example: creates a PVC named <release>-data
+    # data:
+    #   size: 10Gi
+    #   storageClass: standard
+  
+  # Volume mounts (supports PVC, ConfigMap, Secret)
   volumes: []
+    # Mount from PVC (requires matching entry in storage)
+    # - name: data
+    #   mountPath: /app/data
+    #   storage: true
+    #
+    # Mount from ConfigMap
+    # - name: config
+    #   mountPath: /app/config
+    #   configMap:
+    #     name: my-configmap
+    #
+    # Mount from Secret (single file with subPath)
+    # - name: credentials
+    #   mountPath: /app/credentials.json
+    #   subPath: credentials.json
+    #   secret:
+    #     name: my-secret
+    #     optional: false

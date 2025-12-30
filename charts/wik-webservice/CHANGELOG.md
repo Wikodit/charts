@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+v0.4.0
+------
+* feat: add metrics configuration with Prometheus annotations on Service
+* feat: add service.port configuration (no longer hardcoded to 80)
+* feat: add service.annotations support
+* feat: add ingress.className support (modern ingressClassName spec)
+* feat: add ingress.tlsAcme configuration
+* feat: add terminationGracePeriodSeconds support
+* feat: add Kubernetes version check for Ingress apiVersion (v1, v1beta1, extensions)
+* fix: typo containerSsecurityContext in deployment template
+* fix: duplicate release label in pod template
+* docs: complete README with configuration tables and examples
+* docs: add comprehensive examples in values.yaml
+
 v0.3.2
 ------
 * feat: add affinity

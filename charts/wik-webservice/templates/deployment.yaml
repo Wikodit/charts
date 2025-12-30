@@ -25,7 +25,6 @@ spec:
         app: {{ template "name" . }}
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
-        release: {{ .Release.Name }}
 {{ if .Values.webservice.additionalLabels }}
 {{ .Values.webservice.additionalLabels | toYaml | indent 8 }}
 {{ end }}
@@ -47,16 +46,24 @@ spec:
       dnsConfig:
 {{ .Values.webservice.dnsConfig | toYaml | indent 8 }}
 {{ end }}
+{{ if .Values.webservice.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.webservice.terminationGracePeriodSeconds }}
+{{ end }}
       containers:
         - name: {{ template "fullname" . }}
           image: {{ .Values.webservice.image }}
-{{ if .Values.webservice.containerSsecurityContext}}
+{{ if .Values.webservice.containerSecurityContext}}
           securityContext:
 {{ .Values.webservice.containerSecurityContext | toYaml | indent 12 }}
 {{ end }}
           imagePullPolicy: {{ .Values.webservice.imagePullPolicy }}
           ports:
-            - containerPort: {{ .Values.webservice.port }}
+            - name: http
+              containerPort: {{ .Values.webservice.port }}
+{{- if .Values.webservice.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.webservice.metrics.port }}
+{{- end }}
 {{ if .Values.webservice.command }}
           command:
 {{ .Values.webservice.command | toYaml | indent 12 }}

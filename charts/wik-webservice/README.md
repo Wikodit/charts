@@ -1,14 +1,230 @@
-wikodit webservice
-==============
+# wik-webservice
 
 ## Introduction
 
-This charts aims to simplify the deployment of a webservice.
+This chart simplifies the deployment of a webservice on Kubernetes.
 
-It setups :
+It creates:
 
-* ConfigMap/Secret/SealedSecret with environment variables
-* Secret/SealedSecret with docker pull secret
-* Deployment with an image
-* Service and Ingress with an host
-* PVC...
+- **ConfigMap/Secret/SealedSecret** for environment variables
+- **Secret/SealedSecret** for docker pull credentials
+- **Deployment** with configurable containers, probes, and resources
+- **Service** with optional metrics port and Prometheus annotations
+- **Ingress** with configurable hosts and annotations
+- **PVC** for persistent storage
+
+## Installation
+
+```bash
+helm install my-app ./wik-webservice -f values.yaml
+```
+
+## Configuration
+
+### General
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `general.sealedSecrets` | Use SealedSecrets instead of plain Secrets | `false` |
+
+### Webservice
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.image` | Container image (required) | `""` |
+| `webservice.imagePullPolicy` | Image pull policy | `Always` |
+| `webservice.replicas` | Number of replicas | `1` |
+| `webservice.port` | Container port | `80` |
+| `webservice.hosts` | Ingress hostnames | `[]` |
+| `webservice.command` | Override container command | `[]` |
+| `webservice.args` | Override container args | `[]` |
+
+### Service
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.service.enabled` | Create a Service | `true` |
+| `webservice.service.annotations` | Service annotations | `{}` |
+
+### Metrics
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.metrics.enabled` | Enable metrics port and Prometheus annotations | `false` |
+| `webservice.metrics.port` | Metrics port | `9090` |
+| `webservice.metrics.path` | Metrics path | `/metrics` |
+
+### Ingress
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.ingress.enabled` | Create an Ingress | `true` |
+| `webservice.ingress.annotations` | Ingress annotations | `{}` |
+
+### Resources & Probes
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.resources` | CPU/Memory requests and limits | `{}` |
+| `webservice.livenessProbe` | Liveness probe configuration | `{}` |
+| `webservice.readinessProbe` | Readiness probe configuration | `{}` |
+
+### Security
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.securityContext` | Pod-level security context | `{}` |
+| `webservice.containerSecurityContext` | Container-level security context | `{}` |
+
+### Environment Variables
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.env.plaintext` | Plain environment variables (stored in ConfigMap) | `{}` |
+| `webservice.env.secret` | Secret environment variables (stored in Secret/SealedSecret) | `{}` |
+
+### Volumes
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.storage` | PVC definitions | `{}` |
+| `webservice.volumes` | Volume mounts (PVC, ConfigMap, Secret) | `[]` |
+
+### Scheduling
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.nodeSelector` | Node selector | `{}` |
+| `webservice.affinity` | Affinity rules | `{}` |
+| `webservice.strategy` | Deployment strategy | `{}` |
+
+### Additional Containers
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.initContainers` | Init containers | `[]` |
+| `webservice.additionalContainers` | Sidecar containers | `[]` |
+
+## Examples
+
+### Basic deployment
+
+```yaml
+webservice:
+  image: nginx:latest
+  hosts:
+    - www.example.com
+  replicas: 2
+  port: 80
+```
+
+### With resources and probes
+
+```yaml
+webservice:
+  image: myapp:latest
+  hosts:
+    - api.example.com
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 80
+    initialDelaySeconds: 30
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 80
+```
+
+### With metrics enabled
+
+```yaml
+webservice:
+  image: myapp:latest
+  hosts:
+    - api.example.com
+  metrics:
+    enabled: true
+    port: 9090
+    path: /metrics
+```
+
+### With volumes
+
+```yaml
+webservice:
+  image: myapp:latest
+  hosts:
+    - app.example.com
+  
+  # Define persistent storage
+  storage:
+    data:
+      size: 10Gi
+      storageClass: standard
+  
+  # Mount volumes
+  volumes:
+    # Mount PVC
+    - name: data
+      mountPath: /app/data
+      storage: true
+    
+    # Mount ConfigMap
+    - name: config
+      mountPath: /app/config
+      configMap:
+        name: app-config
+    
+    # Mount Secret file
+    - name: credentials
+      mountPath: /app/credentials.json
+      subPath: credentials.json
+      secret:
+        name: app-credentials
+        optional: false
+```
+
+### With private registry
+
+```yaml
+webservice:
+  image: registry.example.com/myapp:latest
+  imagePullAuth:
+    registry: registry.example.com
+    username: myuser
+    password: mypassword
+```
+
+### With init and sidecar containers
+
+```yaml
+webservice:
+  image: myapp:latest
+  hosts:
+    - app.example.com
+  
+  initContainers:
+    - name: init-db
+      container:
+        image: busybox
+        command: ["sh", "-c", "echo waiting for db..."]
+  
+  additionalContainers:
+    - name: log-shipper
+      container:
+        image: fluent/fluent-bit
+        volumeMounts:
+          - name: logs
+            mountPath: /var/log
+      env:
+        plaintext:
+          FLUENT_OUTPUT: stdout
+```

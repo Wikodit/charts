@@ -1,14 +1,23 @@
 {{ $root := . }}
 {{- if .Values.webservice.ingress.enabled -}}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
 kind: Ingress
 metadata:
+{{- if or .Values.webservice.ingress.annotations .Values.webservice.ingress.tlsAcme }}
   annotations:
-    kubernetes.io/ingress.class: nginx
-    kubernetes.io/tls-acme: 'true'
-    {{ range $key, $value := (.Values.webservice.ingress.annotations | default dict) }}
-    {{ $key }}: {{ $value | quote }}
-    {{ end }}
+{{- if .Values.webservice.ingress.tlsAcme }}
+    kubernetes.io/tls-acme: "true"
+{{- end }}
+{{- with .Values.webservice.ingress.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }}
   name: {{ template "fullname" . }}
   labels:
     app: {{ template "name" . }}
@@ -19,6 +28,9 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{ end }}
 spec:
+{{- if .Values.webservice.ingress.className }}
+  ingressClassName: {{ .Values.webservice.ingress.className }}
+{{- end }}
   rules:
     {{ range .Values.webservice.hosts }}
     - host: {{ . }}
@@ -40,5 +52,5 @@ spec:
         {{ range .Values.webservice.hosts }}
         - {{ . }}
         {{ end }}
-      secretName:  {{ template "fullname" $root }}--tls
+      secretName: {{ template "fullname" $root }}--tls
 {{- end }}
