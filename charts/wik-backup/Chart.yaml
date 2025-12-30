@@ -3,16 +3,30 @@ name: wik-backup
 description: Chart using Wikodit AIO Backup (based on restic)
 type: application
 version: 0.1.0
-appVersion: 0.1.0
+appVersion: "0.1.0"
+
+home: https://github.com/wikodit/charts
+sources:
+  - https://github.com/wikodit/charts
+
 maintainers:
-- name: Wikodit
-  url: https://github.com/wikodit/charts
+  - name: Wikodit
+    url: https://github.com/wikodit
+  - name: Anthony Domingue
+    email: anthony@wikodit.fr
+  - name: Jeremy Trufier
+    email: jeremy@wikodit.fr
+
 keywords:
-  - utility
+  - wikodit
   - backup
-  - database
-  - file
   - restic
+  - database
+  - utility
+
+annotations:
+  artifacthub.io/license: MIT
+
 dependencies:
   - name: common
     repository: https://charts.bitnami.com/bitnami

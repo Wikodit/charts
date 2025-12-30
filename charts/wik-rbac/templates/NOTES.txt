@@ -1,0 +1,17 @@
+Your {{ .Chart.Name }} chart has been installed successfully!
+
+The RBAC manager has been deployed to manage your Kubernetes RBAC resources.
+
+To check the status of the RBAC manager deployment, run:
+
+  kubectl get deployment {{ .Release.Name }}-{{ .Chart.Name }}-rbac-manager
+
+To view the configured RBAC resources, check the following:
+
+  kubectl get namespaces -l app.kubernetes.io/instance={{ .Release.Name }}
+  kubectl get roles -l app.kubernetes.io/instance={{ .Release.Name }}
+  kubectl get clusterroles -l app.kubernetes.io/instance={{ .Release.Name }}
+  kubectl get rolebindings -l app.kubernetes.io/instance={{ .Release.Name }}
+
+For more information on using the chart, see the documentation at:
+https://github.com/wikodit/charts/tree/main/charts/{{ .Chart.Name }}

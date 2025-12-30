@@ -1,9 +1,27 @@
-apiVersion: v1
-description: Quick start for a all-in-one cronjob
-maintainers:
-- email: anthony@wikodit.fr
-  name: Anthony Domingue
-- email: jeremy@wikodit.fr
-  name: Jérémy Trufier
+apiVersion: v2
 name: wik-cronjob
+description: Quick start for a all-in-one cronjob
+type: application
 version: 0.1.0
+appVersion: "0.1.0"
+
+home: https://github.com/wikodit/charts
+sources:
+  - https://github.com/wikodit/charts
+
+maintainers:
+  - name: Wikodit
+    url: https://github.com/wikodit
+  - name: Anthony Domingue
+    email: anthony@wikodit.fr
+  - name: Jérémy Trufier
+    email: jeremy@wikodit.fr
+
+keywords:
+  - wikodit
+  - cronjob
+  - scheduled
+  - job
+
+annotations:
+  artifacthub.io/license: MIT

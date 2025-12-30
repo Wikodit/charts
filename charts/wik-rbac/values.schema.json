@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "namespaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "default": {}
+          },
+          "quotas": {
+            "type": "object",
+            "properties": {
+              "pods": {
+                "type": "string"
+              },
+              "requests.cpu": {
+                "type": "string"
+              },
+              "requests.memory": {
+                "type": "string"
+              },
+              "limits.cpu": {
+                "type": "string"
+              },
+              "limits.memory": {
+                "type": "string"
+              },
+              "requests.nvidia.com/gpu": {
+                "type": "string"
+              }
+            }
+          },
+          "scopeQuotas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "spec": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "labels": {
+                  "type": "object",
+                  "default": {}
+                },
+                "rules": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "serviceAccounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "clusterRoles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "default": {}
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

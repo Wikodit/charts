@@ -1,0 +1,8 @@
+.git
+.gitignore
+.helmignore
+*.tgz
+tests/
+ci/
+README.md.gotmpl
+values.schema.json

@@ -1,0 +1,389 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "restoreJob": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "snapshotId": {
+          "type": "string",
+          "default": "latest"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "required": ["uri"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "password": {
+          "type": "string"
+        },
+        "persistence": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "storageClass": {
+              "type": "string"
+            },
+            "accessModes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["ReadWriteOnce"]
+            },
+            "subMountPath": {
+              "type": "string"
+            },
+            "existingClaim": {
+              "type": "string"
+            },
+            "size": {
+              "type": "string",
+              "default": "5Gi"
+            },
+            "dataSource": {
+              "type": "object",
+              "default": {}
+            },
+            "selector": {
+              "type": "object",
+              "default": {}
+            },
+            "annotations": {
+              "type": "object",
+              "default": {}
+            }
+          }
+        },
+        "credentials": {
+          "type": "object",
+          "properties": {
+            "awsAccessKeyId": {
+              "type": "string"
+            },
+            "awsSecretAccessKey": {
+              "type": "string"
+            }
+          }
+        },
+        "existingSecretName": {
+          "type": "string"
+        }
+      }
+    },
+    "backup": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "cron": {
+          "type": "boolean",
+          "default": true
+        },
+        "schedule": {
+          "type": "string",
+          "default": "@daily"
+        },
+        "adapter": {
+          "type": "string",
+          "default": "fs"
+        },
+        "mode": {
+          "type": "string",
+          "default": "files"
+        },
+        "enableDbLock": {
+          "type": "boolean",
+          "default": true
+        },
+        "retentionPolicy": {
+          "type": "string",
+          "default": "hourly=24 daily=7 weekly=5 monthly=12 yearly=5 last=10"
+        },
+        "noClean": {
+          "type": "boolean",
+          "default": false
+        },
+        "logLevel": {
+          "type": "integer",
+          "default": 5
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "targetDatabase": {
+      "type": "object",
+      "properties": {
+        "existingSecret": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "userKey": {
+              "type": "string",
+              "default": "user"
+            },
+            "passwordKey": {
+              "type": "string",
+              "default": "password"
+            },
+            "mongoUriKey": {
+              "type": "string",
+              "default": "mongoUri"
+            }
+          }
+        },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          }
+        },
+        "port": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "databaseName": {
+          "type": "string"
+        },
+        "connectionOptions": {
+          "type": "object",
+          "default": {}
+        }
+      }
+    },
+    "targetVolume": {
+      "type": "object",
+      "properties": {
+        "subPath": {
+          "type": "string"
+        },
+        "existingClaim": {
+          "type": "string"
+        },
+        "selector": {
+          "type": "object",
+          "default": {}
+        },
+        "mountPath": {
+          "type": "string"
+        }
+      }
+    },
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "commonLabels": {
+      "type": "object",
+      "default": {}
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "default": {}
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": {
+          "type": "string",
+          "default": "registry.cluster.wik.cloud"
+        },
+        "repository": {
+          "type": "string",
+          "default": "utils/wik-aio-backup"
+        },
+        "tag": {
+          "type": "string",
+          "default": "latest"
+        },
+        "digest": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "default": "IfNotPresent"
+        },
+        "pullSecrets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "default": {}
+        },
+        "requests": {
+          "type": "object",
+          "default": {
+            "memory": "512Mi",
+            "cpu": "250m"
+          }
+        }
+      }
+    },
+    "extraArgs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "extraAdapterArgs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "restartPolicy": {
+      "type": "string",
+      "default": "OnFailure"
+    },
+    "command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "args": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "extraEnvVars": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "extraEnvVarsCM": {
+      "type": "string"
+    },
+    "extraEnvVarsSecret": {
+      "type": "string"
+    },
+    "schedulerName": {
+      "type": "string"
+    },
+    "topologySpreadConstraints": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "priorityClassName": {
+      "type": "string"
+    },
+    "extraVolumes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "extraVolumeMounts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "sidecars": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "initContainers": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "podLabels": {
+      "type": "object",
+      "default": {}
+    },
+    "podAnnotations": {
+      "type": "object",
+      "default": {}
+    },
+    "podAffinityPreset": {
+      "type": "string"
+    },
+    "podAntiAffinityPreset": {
+      "type": "string",
+      "default": "soft"
+    },
+    "nodeAffinityPreset": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "affinity": {
+      "type": "object",
+      "default": {}
+    },
+    "nodeSelector": {
+      "type": "object",
+      "default": {}
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": {
+          "type": "string",
+          "default": "registry.k8s.io"
+        },
+        "repository": {
+          "type": "string",
+          "default": "dns/k8s-dns-node-cache"
+        },
+        "tag": {
+          "type": "string",
+          "default": "1.22.11"
+        },
+        "digest": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "default": "IfNotPresent"
+        },
+        "pullSecrets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "updateStrategy": {
+      "type": "object",
+      "properties": {
+        "rollingUpdate": {
+          "type": "object",
+          "properties": {
+            "maxUnavailable": {
+              "type": "string",
+              "default": "10%"
+            }
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "default": {}
+        },
+        "requests": {
+          "type": "object",
+          "default": {
+            "cpu": "25m",
+            "memory": "5Mi"
+          }
+        }
+      }
+    },
+    "upstream": {
+      "type": "object",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "default": {
+            "k8s-app": "kube-dns"
+          }
+        }
+      }
+    }
+  }
+}

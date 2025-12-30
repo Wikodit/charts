@@ -1,0 +1,19 @@
+Your {{ .Chart.Name }} chart has been installed successfully!
+
+The cronjob has been configured with the following schedule:
+{{ .Values.cronjob.schedule }}
+
+To check the status of your cronjob, run:
+
+  kubectl get cronjobs {{ .Release.Name }}-{{ .Chart.Name }}
+
+To view job execution history, run:
+
+  kubectl get jobs -l app.kubernetes.io/name={{ .Chart.Name }},app.kubernetes.io/instance={{ .Release.Name }}
+
+To view logs of the latest execution, run:
+
+  kubectl logs -l app.kubernetes.io/name={{ .Chart.Name }},app.kubernetes.io/instance={{ .Release.Name }}
+
+For more information on using the chart, see the documentation at:
+https://github.com/wikodit/charts/tree/main/charts/{{ .Chart.Name }}

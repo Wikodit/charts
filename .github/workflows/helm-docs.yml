@@ -1,0 +1,63 @@
+name: Generate README
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'charts/**/Chart.yaml'
+      - 'charts/**/values.yaml'
+      - 'charts/**/README.md.gotmpl'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'charts/**/Chart.yaml'
+      - 'charts/**/values.yaml'
+      - 'charts/**/README.md.gotmpl'
+
+jobs:
+  helm-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install helm-docs
+        run: |
+          wget -O helm-docs.tar.gz https://github.com/norwoodj/helm-docs/releases/download/v1.11.0/helm-docs_1.11.0_Linux_x86_64.tar.gz
+          tar -xzf helm-docs.tar.gz
+          sudo mv helm-docs /usr/local/bin/helm-docs
+          helm-docs --version
+
+      - name: Generate README
+        run: |
+          helm-docs --chart-search-root charts
+
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit README changes
+        if: steps.verify-changed-files.outputs.changed == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add charts/*/README.md
+          git commit -m "docs: auto-generate README files from helm-docs"
+
+      - name: Push changes
+        if: steps.verify-changed-files.outputs.changed == 'true' && github.ref == 'refs/heads/main'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      - name: Show diff
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: git diff HEAD^ charts/*/README.md
