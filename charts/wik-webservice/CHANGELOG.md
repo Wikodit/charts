@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.3.0
+------
+* feat: migrate securityContext to containerSecurityContext
+* feat: add securityContext (not the container one)
+
 v0.2.2
 ------
 * feat: allow overriding command and entrypoint
