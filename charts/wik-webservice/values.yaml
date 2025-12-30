@@ -1,23 +1,63 @@
-secrets:
-  # base64 encoded docker auth json
-  docker: ""
+general:
+  # Create SealedSecret with encrypted value 
+  # instead of Secret with plaintext value
+  sealedSecrets: false
 
 webservice:
-  image: image
+  image:
   imagePullPolicy: Always
-  ingress: {}
-  # imagePullAuth:
-  #   registry:
-  #   username:
-  #   password:
-  hosts:
-    - webservice.host.tdd
+  imagePullAuth:
+    registry: ""
+    username: ""
+    password: ""
+    # sealedSecrets must be enabled
+    encrypted: ""
+  hosts: []
+  # - www.hostname.tld
   additionalPaths: []
   replicas: 1
-  revisionHistoryLimit: 0
   port: 80
-  # envVariables: {}
-  # livenessProbe: {}
-  # readinessProbe: {}
-  # strategy: {}
-  # resources: {}
+  ingress:
+    annotations: {}
+      # nginx.ingress.kubernetes.io/proxy-body-size: 200m
+      # nginx.ingress.kubernetes.io/auth-realm: Authentication Required
+      # nginx.ingress.kubernetes.io/auth-secret: basic-auth
+      # nginx.ingress.kubernetes.io/auth-type: basic
+  additionalLabels: {}
+  annotations: {}
+  additionalContainers: []
+  initContainers: []
+    # mysql-client: "true"
+  securityContext: {}
+  resources: {}
+    # requests:
+    #   memory: "512Mi"
+    #   cpu: "250m"
+    # limits:
+    #   memory: "1Gi"
+    #   cpu: "500m"
+  hostAliases: []
+  # - ip: "127.0.0.1"
+  #   hostnames:
+  #     - www.hostname.tld
+
+  dnsConfig: {}
+  #  nameservers:
+  #    - 10.3.0.10
+      
+  strategy: {}
+  revisionHistoryLimit: ""
+  livenessProbe: {}
+  readinessProbe: {}
+
+  env:
+    plaintext: {}
+    #  PLAINTEXT_VAR: value 
+
+    # If using general.sealedSecrets, encrypted value must be used for secret
+    secret: {}
+    #  SECRET_VAR: value or encryptedValue
+
+  nodeSelector: {}
+  storage: {}
+  volumes: []

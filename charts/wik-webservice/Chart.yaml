@@ -1,9 +1,7 @@
 apiVersion: v1
 description: Quick start for a all-in-one webservice
 maintainers:
-- email: jeremy@wikodit.fr
-  name: Jeremy Trufier (Wikodit)
 - email: anthony@wikodit.fr
-  name: Anthony Domingue (Wikodit)
+  name: Anthony Domingue
 name: wik-webservice
-version: 0.0.5
+version: 0.1.0
