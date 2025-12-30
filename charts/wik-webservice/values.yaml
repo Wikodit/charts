@@ -12,6 +12,8 @@ webservice:
     password: ""
     # sealedSecrets must be enabled
     encrypted: ""
+  # command: []
+  # args: []
   hosts: []
   # - www.hostname.tld
   additionalPaths: []

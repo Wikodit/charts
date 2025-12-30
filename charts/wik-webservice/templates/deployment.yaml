@@ -53,6 +53,14 @@ spec:
           imagePullPolicy: {{ .Values.webservice.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.webservice.port }}
+{{ if .Values.webservice.command }}
+          command:
+{{ .Values.webservice.command | toYaml | indent 12 }}
+{{ end }}
+{{ if .Values.webservice.args }}
+          args:
+{{ .Values.webservice.args | toYaml | indent 12 }}
+{{ end }}
 
 {{ if .Values.webservice.env }}
           envFrom:

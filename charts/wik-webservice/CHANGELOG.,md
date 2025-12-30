@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v0.2.2
+------
+* feat: allow overriding command and entrypoint
+
 v0.2.1
 ------
 * fix: additionalContainers and initContainers optional env not respected
