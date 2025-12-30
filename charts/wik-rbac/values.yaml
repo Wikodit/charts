@@ -1,0 +1,63 @@
+###
+# Ensure namespace is created and has some quotas (optional)
+###
+namespaces: []
+  # - name: dev # name of the namespace
+  #   labels: # some additional labels for the namespace
+  #     some-label: some-value
+  #   quotas:
+  #     pods: "4"
+  #     requests.cpu: "1"
+  #     requests.memory: 1Gi
+  #     limits.cpu: "2"
+  #     limits.memory: 2Gi
+  #     requests.nvidia.com/gpu: 4
+  #   scopeQuotas: # k8s standard quota specs
+  #     - name: medium
+  #       spec:
+  #         hard:
+  #           cpu: "10"
+  #           memory: 20Gi
+  #           pods: "10"
+  #         scopeSelector:
+  #           matchExpressions:
+  #           - operator : In
+  #             scopeName: PriorityClass
+  #             values: ["medium"]
+  #   roles:
+  #     - name: role-name
+  #       labels: {} # some additional labels for the role
+  #       rules: [] # k8s role standard rules
+
+###
+# Add some serviceAccounts
+###
+serviceAccounts: []
+  # - name: 'ci'
+
+###
+# Ensure some clusterRoles exists
+#   make sure thoses clusterRoles doesn't override predifined ones
+###
+clusterRoles: []
+  # - name: 'secrets'
+  #   labels:
+  #     some-label: some-value
+  #   rules:
+  #     - apiGroups: [""]
+  #       resources: ["secrets"]
+  #       verbs: ["get", "watch", "list"]
+
+###
+# Define the rbac authorizations
+###
+bindings: [] # cf. rbacBindings option on https://github.com/reactiveops/rbac-manager/blob/master/docs/rbacdefinitions.md
+  # - name: joe
+  #   subjects:
+  #     - kind: User
+  #       name: joe@example.com
+  #   roleBindings:
+  #     - namespace: api
+  #       clusterRole: view
+  #     - namespace: web
+  #       clusterRole: edit

@@ -1,0 +1,13 @@
+{{- if .Values.bindings }}
+apiVersion: rbacmanager.reactiveops.io/v1beta1
+kind: RBACDefinition
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+rbacBindings:
+{{ .Values.bindings | toYaml | indent 2}}
+{{- end }}

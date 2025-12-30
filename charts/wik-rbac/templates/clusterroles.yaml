@@ -1,0 +1,18 @@
+{{- $root := . }}
+{{- range .Values.clusterRoles }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .name | quote }}
+  labels:
+    app: {{ template "name" $root }}
+    chart: {{ $root.Chart.Name }}-{{ $root.Chart.Version }}
+    heritage: {{ $root.Release.Service }}
+    release: {{ $root.Release.Name }}
+{{- if .labels }}
+{{ .labels | toYaml | indent 4}}
+{{- end }}
+rules:
+{{ .rules | toYaml | indent 2}}
+---
+{{- end }}

@@ -1,0 +1,16 @@
+{{- $root := . }}
+{{- range .Values.namespaces }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .name }}
+  labels:
+    app: {{ template "name" $root }}
+    chart: {{ $root.Chart.Name }}-{{ $root.Chart.Version }}
+    heritage: {{ $root.Release.Service }}
+    release: {{ $root.Release.Name }}
+{{- if .labels }}
+{{ .labels | toYaml | indent 4}}
+{{- end }}
+---
+{{- end }}

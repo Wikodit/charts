@@ -1,0 +1,40 @@
+{{- $root := . }}
+{{- range .Values.namespaces }}
+{{- $namespace := . }}
+{{- if .scopeQuotas }}
+{{- range .scopeQuotas }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ template "fullname" $root }}-{{ .name | title | quote }}
+  namespace: {{ $namespace.name }}
+  labels:
+    app: {{ template "name" $root }}
+    chart: {{ $root.Chart.Name }}-{{ $root.Chart.Version }}
+    heritage: {{ $root.Release.Service }}
+    release: {{ $root.Release.Name }}
+{{- if .labels }}
+{{ .labels | toYaml | indent 4}}
+{{- end }}
+spec:
+{{ .spec | toYaml | indent 2}}
+---
+{{- end }}
+{{- end }}
+{{- if .quotas }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ template "fullname" $root }}
+  namespace: {{ $namespace.name }}
+  labels:
+    app: {{ template "name" $root }}
+    chart: {{ $root.Chart.Name }}-{{ $root.Chart.Version }}
+    heritage: {{ $root.Release.Service }}
+    release: {{ $root.Release.Name }}
+spec:
+  hard:
+{{ .quotas | toYaml | indent 4}}
+---
+{{- end }}
+{{- end }}
