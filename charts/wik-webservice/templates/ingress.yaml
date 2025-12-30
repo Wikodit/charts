@@ -1,0 +1,39 @@
+{{- $root := . }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+    {{- range $key, $value := (.Values.webservice.ingress.annotations | default dict) }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- range $key, $value := (.Values.webservice.ingress.labels | default dict) }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  rules:
+    {{- range .Values.webservice.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+{{- if  $root.Values.webservice.additionalPaths }}
+{{ $root.Values.webservice.additionalPaths | toYaml | indent 10 }}
+{{- end }}
+          - backend:
+              serviceName:  {{ template "fullname" $root }}
+              servicePort: 80
+            path: /
+    {{- end }}
+  tls:
+    - hosts:
+        {{- range .Values.webservice.hosts }}
+        - {{ . }}
+        {{- end }}
+      secretName:  {{ template "fullname" $root }}--tls

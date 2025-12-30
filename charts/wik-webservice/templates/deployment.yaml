@@ -1,0 +1,108 @@
+{{- $root := . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.webservice.replicas }}
+  revisionHistoryLimit: {{ .Values.webservice.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ template "name" . }}
+      release: {{ .Release.Name }}
+{{- if .Values.webservice.strategy }}
+  strategy:
+{{ .Values.webservice.strategy | toYaml | indent 4 }}
+{{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ template "fullname" . }}
+          image: {{ .Values.webservice.image }}
+          {{- if .Values.webservice.runAsUser}}
+          securityContext:
+            runAsUser: {{.Values.webservice.runAsUser}}
+          {{- end }}
+          imagePullPolicy: {{ .Values.webservice.imagePullPolicy }} # to avoid having older stable when redeploying
+          ports:
+            - containerPort: {{ .Values.webservice.port }}
+{{- if .Values.webservice.env }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "fullname" . }}
+{{- end }}
+          resources:
+{{ .Values.webservice.resources | toYaml | indent 12 }}
+{{- if .Values.webservice.livenessProbe }}
+          livenessProbe:
+{{ .Values.webservice.livenessProbe | toYaml | indent 12 }}
+{{- end }}
+{{- if .Values.webservice.livenessProbe }}
+          readinessProbe:
+{{ .Values.webservice.readinessProbe | toYaml | indent 12 }}
+{{- end }}
+{{- if .Values.webservice.volumes }}
+          volumeMounts:
+{{- range .Values.webservice.volumes }}
+{{- if .mountPath }}
+            - mountPath: {{ .mountPath }}
+              name: {{ .name }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.webservice.additionalContainers }}
+{{- range .Values.webservice.additionalContainers }}
+        - name: {{ .name }}
+{{ .container | toYaml | indent 10 }}
+{{- if .sharedEnv }}
+          envFrom: 
+            - configMapRef:
+                name: {{ template "fullname" $root }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.webservice.initContainers }}
+      initContainers:
+{{- range .Values.webservice.initContainers }}
+        - name: {{ .name }}
+{{ .container | toYaml | indent 10 }}
+{{- if .sharedEnv }}
+          envFrom: 
+            - configMapRef:
+                name: {{ template "fullname" $root }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.webservice.imagePullAuth }}
+      imagePullSecrets:
+        - name: {{ template "fullname" . }}-docker
+{{- end }}
+{{- if .Values.webservice.volumes }}
+      volumes:
+{{- range .Values.webservice.volumes }}
+{{- if .storage }}
+        - name: {{ .name }}
+          persistentVolumeClaim:
+            claimName: {{ template "fullname" $root }}-{{ .name }}
+{{- end }}
+{{- if .configMap }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap.name }}
+{{- end }}
+{{- end }}
+{{- end }}

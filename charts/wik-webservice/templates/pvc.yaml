@@ -1,0 +1,19 @@
+{{- $root := . }}
+{{- if .Values.webservice.volumes }}
+{{- range .Values.webservice.volumes }}
+{{- if .storage }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "fullname" $root }}-{{ .name }}
+  labels:
+    app: {{ template "name" $root }}
+    chart: {{ $root.Chart.Name }}-{{ $root.Chart.Version }}
+    heritage: {{ $root.Release.Service }}
+    release: {{ $root.Release.Name }}
+spec:
+{{ .storage | toYaml | indent 2 }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

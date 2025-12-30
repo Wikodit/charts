@@ -1,0 +1,13 @@
+{{- if .Values.webservice.env }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+data:
+{{ .Values.webservice.env | toYaml | indent 2}}
+{{- end }}

@@ -1,0 +1,23 @@
+secrets:
+  # base64 encoded docker auth json
+  docker: ""
+
+webservice:
+  image: image
+  imagePullPolicy: Always
+  ingress: {}
+  # imagePullAuth:
+  #   registry:
+  #   username:
+  #   password:
+  hosts:
+    - webservice.host.tdd
+  additionalPaths: []
+  replicas: 1
+  revisionHistoryLimit: 0
+  port: 80
+  # envVariables: {}
+  # livenessProbe: {}
+  # readinessProbe: {}
+  # strategy: {}
+  # resources: {}
