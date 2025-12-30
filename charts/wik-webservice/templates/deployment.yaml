@@ -124,6 +124,11 @@ spec:
 {{ .Values.webservice.nodeSelector | toYaml | indent 10 }}
 {{ end }}
 
+{{ if .Values.webservice.affinity }}
+      affinity:
+{{ .Values.webservice.affinity | toYaml | indent 10 }}
+{{ end }}
+
 {{ if .Values.webservice.initContainers }}
       initContainers:
 {{ range .Values.webservice.initContainers }}

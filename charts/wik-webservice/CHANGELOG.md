@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v0.3.2
+------
+* feat: add affinity
+
 v0.3.1
 ------
 * fix: wrong key in deployment for containerSecurityContext
