@@ -1,4 +1,5 @@
 {{ $root := . }}
+{{- if .Values.webservice.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -40,3 +41,4 @@ spec:
         - {{ . }}
         {{ end }}
       secretName:  {{ template "fullname" $root }}--tls
+{{- end }}

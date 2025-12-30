@@ -1,0 +1,6 @@
+CHANGELOG
+=========
+
+v0.2.0
+------
+* add `webservice.ingress.enabled` and `webservice.service.enabled`

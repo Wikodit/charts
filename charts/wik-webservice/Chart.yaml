@@ -3,5 +3,7 @@ description: Quick start for a all-in-one webservice
 maintainers:
 - email: anthony@wikodit.fr
   name: Anthony Domingue
+- email: jeremy@wikodit.fr
+  name: Jeremy Trufier
 name: wik-webservice
-version: 0.1.0
+version: 0.2.0
