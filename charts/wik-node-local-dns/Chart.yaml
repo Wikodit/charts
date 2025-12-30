@@ -1,0 +1,9 @@
+apiVersion: v1
+description: node-local-dns for ovh cluster
+maintainers:
+- email: jeremy@wikodit.fr
+  name: Jeremy Trufier (Wikodit)
+- email: anthony@wikodit.fr
+  name: Anthony Domingue (Wikodit)
+name: wik-node-local-dns
+version: 0.1.0

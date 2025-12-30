@@ -1,0 +1,32 @@
+image:
+  registry: registry.k8s.io
+  repository: dns/k8s-dns-node-cache
+  tag: 1.22.11
+  digest: ""
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: IfNotPresent
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ## e.g:
+  ## pullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  pullSecrets: []
+
+updateStrategy:
+  rollingUpdate:
+    maxUnavailable: 10%
+
+resources:
+  limits: {}
+  requests:
+    cpu: 25m
+    memory: 5Mi
+
+upstream:
+  selector:
+    k8s-app: kube-dns
