@@ -1,0 +1,9 @@
+# Wikodit Helm Charts Code Owners
+# These owners will be requested for review on PRs
+
+# Default owners for everything
+* @wikodit/maintainers
+
+# Chart-specific owners (optional, can be customized)
+# /charts/wik-webservice/ @wikodit/maintainers
+# /charts/wik-backup/ @wikodit/maintainers

@@ -1,1 +1,6 @@
-.staging/
+# Helm
+*.tgz
+charts/*/charts/*.tgz
+
+# Dependencies lock can be committed or ignored based on preference
+# Chart.lock
