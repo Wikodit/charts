@@ -1,0 +1,136 @@
+{{ $root := . }}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  schedule: {{ .Values.cronJob.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: {{ .Values.cronJob.restartPolicy }}
+          containers:
+            - name: {{ template "fullname" . }}
+              image: {{ .Values.cronJob.image }}
+{{ if .Values.cronJob.securityContext}}
+              securityContext:
+{{ .Values.cronJob.securityContext | toYaml | indent 12 }}
+{{ end }}
+              imagePullPolicy: {{ .Values.cronJob.imagePullPolicy }}
+
+{{ if .Values.cronJob.env }}
+              envFrom:
+{{ if .Values.cronJob.env.secret }}
+                - secretRef:
+                    name: {{ template "fullname" . }}
+{{ end }}
+{{ if .Values.cronJob.env.plaintext }}
+                - configMapRef:
+                    name: {{ template "fullname" . }}
+{{ end }}
+{{ end }}
+
+              resources:
+{{ .Values.cronJob.resources | toYaml | indent 16 }}
+{{ if .Values.cronJob.livenessProbe }}
+              livenessProbe:
+{{ .Values.cronJob.livenessProbe | toYaml | indent 16 }}
+{{ end }}
+{{ if .Values.cronJob.livenessProbe }}
+              readinessProbe:
+{{ .Values.cronJob.readinessProbe | toYaml | indent 16 }}
+{{ end }}
+{{ if .Values.cronJob.volumes }}
+              volumeMounts:
+{{ range .Values.cronJob.volumes }}
+{{ if .mountPath }}
+                - mountPath: {{ .mountPath }}
+                  subPath: {{ .subPath }}
+                  name: {{ .name }}
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{ if .Values.cronJob.additionalContainers }}
+{{ range .Values.cronJob.additionalContainers }}
+            - name: {{ .name }}
+{{ .container | toYaml | indent 14 }}
+
+{{ if .env}}
+              envFrom:
+{{ if .env.secret }}
+                - secretRef:
+                    name: "{{ template "fullname" $root }}-{{ .name }}"
+{{ end }}
+{{ if .env.plaintext }}
+                - configMapRef:
+                    name: "{{ template "fullname" $root }}-{{ .name }}"
+{{ end }}
+{{ end }}
+
+{{ end }}
+{{ end }}
+
+{{ if .Values.cronJob.nodeSelector }}
+          nodeSelector:
+{{ .Values.cronJob.nodeSelector | toYaml | indent 14 }}
+{{ end }}
+
+{{ if .Values.cronJob.initContainers }}
+          initContainers:
+{{ range .Values.cronJob.initContainers }}
+            - name: {{ .name }}
+{{ .container | toYaml | indent 14 }}
+
+{{ if .env }}
+              envFrom:
+{{ if .env.secret }}
+                - secretRef:
+                    name: "{{ template "fullname" $root }}-{{ .name }}"
+{{ end }}
+{{ if .env.plaintext }}
+                - configMapRef:
+                    name: "{{ template "fullname" $root }}-{{ .name }}"
+{{ end }}
+{{ end }}
+
+{{ end }}
+{{ end }}
+
+{{ if .Values.cronJob.imagePullAuth }}
+          imagePullSecrets:
+            - name: {{ template "fullname" . }}-docker
+{{ end }}
+
+{{ if .Values.cronJob.volumes }}
+          volumes:
+{{ range .Values.cronJob.volumes }}
+
+{{ if .storage }}
+            - name: {{ .name }}
+              persistentVolumeClaim:
+                claimName: {{ template "fullname" $root }}-{{ .name }}
+{{ end }}
+
+{{ if .configMap }}
+            - name: {{ .name }}
+              configMap:
+                name: {{ .configMap.name }}
+{{ end }}
+
+{{ if .secret }}
+            - name: {{ .name }}
+              secret:
+                secretName: {{ .secret.name }}
+                optional: {{ .secret.optional }}
+{{ end }}
+
+{{ end }}
+
+{{ end }}
