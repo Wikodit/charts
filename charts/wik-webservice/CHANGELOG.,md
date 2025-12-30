@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.2.1
+------
+* fix: additionalContainers and initContainers optional env not respected
+* fix: wrong condition livenessProbe instead of readinessProbe
+
 v0.2.0
 ------
 * add `webservice.ingress.enabled` and `webservice.service.enabled`

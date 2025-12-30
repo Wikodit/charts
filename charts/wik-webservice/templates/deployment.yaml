@@ -72,7 +72,7 @@ spec:
           livenessProbe:
 {{ .Values.webservice.livenessProbe | toYaml | indent 12 }}
 {{ end }}
-{{ if .Values.webservice.livenessProbe }}
+{{ if .Values.webservice.readinessProbe }}
           readinessProbe:
 {{ .Values.webservice.readinessProbe | toYaml | indent 12 }}
 {{ end }}

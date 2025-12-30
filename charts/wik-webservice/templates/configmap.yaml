@@ -27,14 +27,14 @@ data:
 {{ end }}
 
 {{ range .Values.webservice.additionalContainers }}
-{{ if .env.plaintext }}
+{{ if and .env .env.plaintext }}
 ---
 {{ template "configmap" (list . $) }}
 {{ end }}
 {{ end }}
 
 {{ range .Values.webservice.initContainers }}
-{{ if .env.plaintext }}
+{{ if and .env .env.plaintext }}
 ---
 {{ template "configmap" (list . $) }}
 {{ end }}
