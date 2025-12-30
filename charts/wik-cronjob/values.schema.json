@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "general": {
+      "type": "object",
+      "properties": {
+        "sealedSecrets": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "cronjob": {
+      "type": "object",
+      "required": ["schedule"],
+      "properties": {
+        "schedule": {
+          "type": "string",
+          "default": "0 1 * * *"
+        },
+        "image": {
+          "type": "object"
+        },
+        "imagePullPolicy": {
+          "type": "string",
+          "default": "Always"
+        },
+        "imagePullAuth": {
+          "type": "object",
+          "properties": {
+            "registry": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "encrypted": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalContainers": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "initContainers": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "securityContext": {
+          "type": "object",
+          "default": {}
+        },
+        "restartPolicy": {
+          "type": "string",
+          "default": "OnFailure"
+        },
+        "resources": {
+          "type": "object",
+          "default": {}
+        },
+        "env": {
+          "type": "object",
+          "properties": {
+            "plaintext": {
+              "type": "object",
+              "default": {}
+            },
+            "secret": {
+              "type": "object",
+              "default": {}
+            }
+          }
+        },
+        "nodeSelector": {
+          "type": "object",
+          "default": {}
+        },
+        "storage": {
+          "type": "object",
+          "default": {}
+        },
+        "volumes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+Your {{ .Chart.Name }} chart has been installed successfully!
+
+The backup cronjob has been configured with the following schedule:
+{{ .Values.backup.schedule }}
+
+To check the status of your backup jobs, run:
+
+  kubectl get cronjobs {{ .Release.Name }}-{{ .Chart.Name }}
+  kubectl get jobs -l app.kubernetes.io/name={{ .Chart.Name }},app.kubernetes.io/instance={{ .Release.Name }}
+
+To view backup logs, run:
+
+  kubectl logs -l app.kubernetes.io/name={{ .Chart.Name }},app.kubernetes.io/instance={{ .Release.Name }}
+
+For more information on using the chart, see the documentation at:
+https://github.com/wikodit/charts/tree/main/charts/{{ .Chart.Name }}

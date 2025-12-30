@@ -1,0 +1,15 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.description" . }}
+
+## Installation
+
+```bash
+helm install {{ template "chart.name" . }} oci://ghcr.io/wikodit/charts/{{ template "chart.name" . }} --version {{ template "chart.version" . }}
+```
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "chart.maintainersSection" . }}

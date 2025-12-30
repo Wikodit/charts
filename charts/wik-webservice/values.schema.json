@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "general": {
+      "type": "object",
+      "properties": {
+        "sealedSecrets": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "webservice": {
+      "type": "object",
+      "required": ["image"],
+      "properties": {
+        "image": {
+          "type": "string",
+          "minLength": 1
+        },
+        "imagePullPolicy": {
+          "type": "string",
+          "default": "Always"
+        },
+        "imagePullAuth": {
+          "type": "object",
+          "properties": {
+            "registry": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "encrypted": {
+              "type": "string"
+            }
+          }
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "additionalPaths": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 1
+        },
+        "port": {
+          "type": "integer",
+          "default": 80
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "port": {
+              "type": "integer",
+              "default": 80
+            },
+            "annotations": {
+              "type": "object",
+              "default": {}
+            }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "port": {
+              "type": "integer",
+              "default": 9090
+            },
+            "path": {
+              "type": "string",
+              "default": "/metrics"
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsAcme": {
+              "type": "boolean",
+              "default": true
+            },
+            "annotations": {
+              "type": "object",
+              "default": {}
+            }
+          }
+        },
+        "additionalLabels": {
+          "type": "object",
+          "default": {}
+        },
+        "annotations": {
+          "type": "object",
+          "default": {}
+        },
+        "additionalContainers": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "initContainers": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "securityContext": {
+          "type": "object",
+          "default": {}
+        },
+        "containerSecurityContext": {
+          "type": "object",
+          "default": {}
+        },
+        "resources": {
+          "type": "object",
+          "default": {}
+        },
+        "hostAliases": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "dnsConfig": {
+          "type": "object",
+          "default": {}
+        },
+        "strategy": {
+          "type": "object",
+          "default": {}
+        },
+        "revisionHistoryLimit": {
+          "type": "string"
+        },
+        "terminationGracePeriodSeconds": {
+          "type": "string"
+        },
+        "livenessProbe": {
+          "type": "object",
+          "default": {}
+        },
+        "readinessProbe": {
+          "type": "object",
+          "default": {}
+        },
+        "env": {
+          "type": "object",
+          "properties": {
+            "plaintext": {
+              "type": "object",
+              "default": {}
+            },
+            "secret": {
+              "type": "object",
+              "default": {}
+            }
+          }
+        },
+        "nodeSelector": {
+          "type": "object",
+          "default": {}
+        },
+        "affinity": {
+          "type": "object",
+          "default": {}
+        },
+        "storage": {
+          "type": "object",
+          "default": {}
+        },
+        "volumes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

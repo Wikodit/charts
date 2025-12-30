@@ -1,0 +1,16 @@
+Your {{ .Chart.Name }} chart has been installed successfully!
+
+To get more information about your deployment, run:
+
+  kubectl get deployment {{ .Release.Name }}-{{ .Chart.Name }}
+
+To check the status of your pods, run:
+
+  kubectl get pods -l app.kubernetes.io/name={{ .Chart.Name }},app.kubernetes.io/instance={{ .Release.Name }}
+
+To access your service, check the ingress details:
+
+  kubectl get ingress {{ .Release.Name }}-{{ .Chart.Name }}
+
+For more information on using the chart, see the documentation at:
+https://github.com/wikodit/charts/tree/main/charts/{{ .Chart.Name }}
