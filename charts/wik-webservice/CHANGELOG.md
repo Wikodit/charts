@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v0.3.1
+------
+* fix: wrong key in deployment for containerSecurityContext
+
 v0.3.0
 ------
 * feat: migrate securityContext to containerSecurityContext

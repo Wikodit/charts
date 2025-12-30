@@ -39,18 +39,18 @@ spec:
       hostAliases:
 {{ .Values.webservice.hostAliases | toYaml | indent 8 }}
 {{ end }}
+{{ if .Values.webservice.securityContext }}
+      securityContext:
+{{ .Values.webservice.securityContext | toYaml | indent 8 }}
+{{ end }}
 {{ if .Values.webservice.dnsConfig }}
       dnsConfig:
 {{ .Values.webservice.dnsConfig | toYaml | indent 8 }}
 {{ end }}
-{{ if .Values.webservice.securityContext}}
-      securityContext:
-{{ .Values.webservice.securityContext | toYaml | indent 8 }}
-{{ end }}
       containers:
         - name: {{ template "fullname" . }}
           image: {{ .Values.webservice.image }}
-{{ if .Values.webservice.containerSecurityContext}}
+{{ if .Values.webservice.containerSsecurityContext}}
           securityContext:
 {{ .Values.webservice.containerSecurityContext | toYaml | indent 12 }}
 {{ end }}
