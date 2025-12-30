@@ -1,0 +1,258 @@
+# Experimental: run a restore Job on chart install
+restoreJob:
+  # Run a Job on chart install
+  enabled: false
+
+  # Specify a snapshotId
+  # The snapshotId must have all the specified tags
+  # "latest" is a valid value here, it represents the most recent snapshot with the given tag list
+  snapshotId: latest
+
+  # Tags to filter what to restore (backup.tags are also used)
+  tags: []
+
+# Restic repository
+repository:
+  # Location of the restic repository
+  uri: "" # s3:url/container/path
+
+  # Password of the restic repository
+  password:
+
+  # To use when the restic repository is on a volume
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    subMountPath: ""
+    existingClaim: ""
+    size: 5Gi
+    dataSource: {}
+    selector: {}
+    annotations: {}
+
+  # Object Storage credentials
+  credentials:
+    awsAccessKeyId: ""
+    awsSecretAccessKey: ""
+
+  # When not specified user/password as well as db credentials will be stored in same secret
+  existingSecretName: ""
+
+backup:
+  enabled: true
+
+  # If disabled, a one time backup Job will be installed
+  cron: true
+
+  # CRONJob schedule value
+  schedule: "@daily"
+
+  # Backup adapter to use: mysql, mongo, pg, fs
+  adapter: fs
+
+  # Files (filesystem) or Utility (mongodump, mysqldump, ...) to use
+  mode: files
+
+  # Lock the DB prior to the backup. When using mode=files, disabling the database lock (hot backup), may result in data lost if the database is in use.
+  # However, disabling the lock, can be useful to backup a database that is not running and thus not reachable
+  # On mongo, it's recommended to use a replica to backup
+  enableDbLock: true
+
+  # When cleaning occurs, what to keep, cf. restic doc
+  retentionPolicy: hourly=24 daily=7 weekly=5 monthly=12 yearly=5 last=10
+
+  # By default apply the cleaning using the retentionPolicy after each backup
+  noClean: false
+
+  # Define logging level, default to 5 "notice" (0=emergency, 1=alert, 2=crit, 3=error, 4=warning, 5=notice, 6=info, 7=debug)
+  logLevel: 5
+
+  # Additional tags to give to the backup in the repository
+  tags: []
+
+# Database to backup/restore (when mode=utility, HOWEVER also needed for mode=files when enableDbLock is enabled)
+targetDatabase:
+  # When not specified user/password as well as db credentials will be stored in same secret
+  existingSecret:
+    name: ""
+    userKey: user
+    passwordKey: password
+    mongoUriKey: mongoUri
+  auth:
+    user: ""
+    password: ""
+  port: "" # default to guessing port from the backup.adapter value
+  host: "" # for mongo can be `host1:port1,host2:port2,...`
+  databaseName: ""
+  connectionOptions: {}
+  #   # Exemple for mongo:
+  #   authSource: admin
+  #   readPreference: primary
+  #   ssl: "false"
+  #   directConnection: "true"
+
+# Volume to backup (when mode=files)
+targetVolume:
+  # The path to backup from/to
+  subPath: ""
+  existingClaim: ""
+  selector: {}
+  mountPath: ""
+
+nameOverride: ""
+fullnameOverride: ""
+
+commonLabels: {}
+commonAnnotations: {}
+
+image:
+  registry: registry.cluster.wik.cloud
+  repository: utils/wik-aio-backup
+  tag: latest
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+resources:
+  limits: {}
+  requests:
+    memory: 512Mi
+    cpu: 250m
+
+# Extra args for WAIOB command
+extraArgs: []
+  # - --dry-run
+  # - --no-clean
+
+# Extra args to give to the adapter utility
+extraAdapterArgs: []
+  # # exemple for mongo
+  # - --oplog
+
+restartPolicy: OnFailure
+
+## @param command Override default container command (useful when using custom images)
+##
+command: []
+
+## @param args Override default container args (useful when using custom images)
+##
+args: []
+
+## @param extraEnvVars Array with extra environment variables to add to the Backup container
+## e.g:
+## extraEnvVars:
+##   - name: FOO
+##     value: "bar"
+##
+extraEnvVars: []
+
+## @param extraEnvVarsCM Name of existing ConfigMap containing extra env vars
+##
+extraEnvVarsCM: ""
+
+## @param extraEnvVarsSecret Name of existing Secret containing extra env vars
+##
+extraEnvVarsSecret: ""
+
+## @param schedulerName Alternate scheduler
+## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+##
+schedulerName: ""
+
+## @param topologySpreadConstraints Topology Spread Constraints for pod assignment spread across your cluster among failure-domains. Evaluated as a template
+## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+##
+topologySpreadConstraints: []
+
+## @param priorityClassName Name of the existing priority class to be used by WordPress pods, priority class needs to be created beforehand
+## Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+##
+priorityClassName: ""
+
+## @param extraVolumes Optionally specify extra list of additional volumes for Backup pods
+##
+extraVolumes: []
+
+## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for Backup container(s)
+##
+extraVolumeMounts: []
+
+## @param sidecars Add additional sidecar containers to the Backup pod
+## e.g:
+## sidecars:
+##   - name: your-image-name
+##     image: your-image
+##     imagePullPolicy: Always
+##     ports:
+##       - name: portname
+##         containerPort: 1234
+##
+sidecars: []
+
+## @param initContainers Add additional init containers to the Backup pods
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+## e.g:
+## initContainers:
+##  - name: your-image-name
+##    image: your-image
+##    imagePullPolicy: Always
+##    command: ['sh', '-c', 'copy themes and plugins from git and push to /bitnami/Backup/wp-content. Should work with extraVolumeMounts and extraVolumes']
+##
+initContainers: []
+
+## @param podLabels Extra labels for Backup pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+podLabels: {}
+
+## @param podAnnotations Annotations for Backup pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+podAnnotations: {}
+
+## @param podAffinityPreset Pod affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+##
+podAffinityPreset: ""
+
+## @param podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
+## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+##
+podAntiAffinityPreset: soft
+
+## Node affinity preset
+## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+##
+nodeAffinityPreset:
+  ## @param nodeAffinityPreset.type Node affinity preset type. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
+  ##
+  type: ""
+  ## @param nodeAffinityPreset.key Node label key to match. Ignored if `affinity` is set
+  ##
+  key: ""
+  ## @param nodeAffinityPreset.values Node label values to match. Ignored if `affinity` is set
+  ## E.g.
+  ## values:
+  ##   - e2e-az1
+  ##   - e2e-az2
+  ##
+  values: []
+
+## @param affinity Affinity for pod assignment
+## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+## NOTE: podAffinityPreset, podAntiAffinityPreset, and nodeAffinityPreset will be ignored when it's set
+##
+affinity: {}
+
+## @param nodeSelector Node labels for pod assignment
+## ref: https://kubernetes.io/docs/user-guide/node-selection/
+##
+nodeSelector: {}
+
+## @param tolerations Tolerations for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
+tolerations: []

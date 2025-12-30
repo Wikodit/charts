@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: CronJob
+metadata:
+  name: {{ include "backup.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec: 
+  schedule: {{ .Values.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          affinity: {{ toYaml .Values.affinity | nindent 12 }}
+          volumes: 
+            {{- if .Values.repository.persistence.enabled }}
+            - name: backup-data
+            persistentVolumeClaim:
+              {{- if not .Values.repository.persistence.existingClaim }}
+              claimName: {{ include "default.volume.claimName" }}
+              {{- else }}
+              claimName: {{ .Values.repository.persistence.existingClaim }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.database.existingClaim }}
+            - name: data
+            persistentVolumeClaim:
+              claimName: {{ .Values.database.existingClaim }}
+            {{- end }}
+          containers:
+            - name: backup
+              image: {{ include "backup.image" . }}
+              imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+              env:
+                {{- if .Values.backup.database.host }}
+                - name: DB_CONFIG_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "backup.dbAuthSecret" . }}
+                      key: {{ .Values.backup.database.existingSecret.passwordKey | quote }}
+                - name: DB_CONFIG_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "backup.dbAuthSecret" . }}
+                      key: {{ .Values.backup.database.existingSecret.userKey | quote }}
+                - name: DB_MONGO_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "backup.dbAuthSecret" . }}
+                      key: {{ .Values.backup.database.existingSecret.mongoUriKey | quote }}
+                - name: DB_CONFIG_HOST
+                  value: {{ .Values.backup.database.host | quote }}
+                - name: DB_CONFIG_PORT
+                  value: {{ include "backup.databasePort" . | quote }}
+                - name: DB_DATABASE
+                  value: {{ .Values.backup.database.databaseName | quote }}
+                {{ - end }}
+                - name: RESTIC_REPOSITORY
+                  value: {{ .Values.repository.uri | quote }}
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "backup.repositorySecret" . }}
+                      key: "password"
+                - name: WAIOB_ADAPTER
+                  value: {{ .Values.backup.adapter | quote }}
+                - name: WAIOB_MODE
+                  value: {{ .Values.backup.mode | quote }}
+                {{- if .Values.extraEnvVars }}
+                {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
+                {{- end }}
+              envFrom:
+                {{- if .Values.extraEnvVarsCM }}
+                - configMapRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsCM "context" $) }}
+                {{- end }}
+                {{- if .Values.extraEnvVarsSecret }}
+                - secretRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+                {{- end }}
+              volumeMounts:
+                {{- if .Values.repository.persistence.enabled }}
+                - mountPath: {{ .Values.repository.persistence.mountPath }}
+                  name: backup-data
+                  subPath: {{ .Values.repository.persistence.subMountPath }}
+                {{- end }}
+                {{- if .Values.database.existingClaim }}
+                - mountPath: {{ .Values.database.mountPath }}
+                  name: data
+                {{- end }}
+              envFrom:
+                {{- if .Values.extraEnvVarsCM }}
+                - configMapRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsCM "context" $) }}
+                {{- end }}
+                {{- if .Values.extraEnvVarsSecret }}
+                - secretRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+                {{- end }}
+              - secretRef:
+                  name: "{{ include "backup.fullname" . }}-env"
+              resources: {{ toYaml .Values.resources | nindent 16 }}
+          restartPolicy: {{ .Values.restartPolicy }}

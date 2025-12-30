@@ -1,0 +1,21 @@
+apiVersion: v2
+name: wik-backup
+description: Chart using Wikodit AIO Backup (based on restic)
+type: application
+version: 0.1.0
+appVersion: 0.1.0
+maintainers:
+- name: Wikodit
+  url: https://github.com/wikodit/charts
+keywords:
+  - utility
+  - backup
+  - database
+  - file
+  - restic
+dependencies:
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    tags:
+      - bitnami-common
+    version: 2.x.x

@@ -1,0 +1,19 @@
+{{- if and (.Values.repository.persistence.enabled) (not .Values.repository.persistence.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: www-pvc
+spec:
+  accessModes: 
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: slow
+  resources:
+    requests:
+      storage: {{ .Values.repository.persistence.pvc.resources.storage }}
+    namespaceSelector:
+      matchNames:
+        - {{ .Release.Namespace | quote }}
+  selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
+    app.kubernetes.io/component: primary
+{{- end }}
