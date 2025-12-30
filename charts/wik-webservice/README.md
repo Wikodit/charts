@@ -163,26 +163,26 @@ webservice:
   image: myapp:latest
   hosts:
     - app.example.com
-  
+ 
   # Define persistent storage
   storage:
     data:
       size: 10Gi
       storageClass: standard
-  
+ 
   # Mount volumes
   volumes:
     # Mount PVC
     - name: data
       mountPath: /app/data
       storage: true
-    
+   
     # Mount ConfigMap
     - name: config
       mountPath: /app/config
       configMap:
         name: app-config
-    
+   
     # Mount Secret file
     - name: credentials
       mountPath: /app/credentials.json
@@ -210,13 +210,13 @@ webservice:
   image: myapp:latest
   hosts:
     - app.example.com
-  
+ 
   initContainers:
     - name: init-db
       container:
         image: busybox
         command: ["sh", "-c", "echo waiting for db..."]
-  
+ 
   additionalContainers:
     - name: log-shipper
       container:
@@ -228,3 +228,57 @@ webservice:
         plaintext:
           FLUENT_OUTPUT: stdout
 ```
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| general.sealedSecrets | bool | `false` |  |
+| webservice.additionalContainers | list | `[]` |  |
+| webservice.additionalLabels | object | `{}` |  |
+| webservice.additionalPaths | list | `[]` |  |
+| webservice.affinity | object | `{}` |  |
+| webservice.annotations | object | `{}` |  |
+| webservice.containerSecurityContext | object | `{}` |  |
+| webservice.dnsConfig | object | `{}` |  |
+| webservice.env.plaintext | object | `{}` |  |
+| webservice.env.secret | object | `{}` |  |
+| webservice.hostAliases | list | `[]` |  |
+| webservice.hosts | list | `[]` |  |
+| webservice.image | string | `""` |  |
+| webservice.imagePullAuth.encrypted | string | `""` |  |
+| webservice.imagePullAuth.password | string | `""` |  |
+| webservice.imagePullAuth.registry | string | `""` |  |
+| webservice.imagePullAuth.username | string | `""` |  |
+| webservice.imagePullPolicy | string | `"Always"` |  |
+| webservice.ingress.annotations | object | `{}` |  |
+| webservice.ingress.className | string | `""` |  |
+| webservice.ingress.enabled | bool | `true` |  |
+| webservice.ingress.tlsAcme | bool | `true` |  |
+| webservice.initContainers | list | `[]` |  |
+| webservice.livenessProbe | object | `{}` |  |
+| webservice.metrics.enabled | bool | `false` |  |
+| webservice.metrics.path | string | `"/metrics"` |  |
+| webservice.metrics.port | int | `9090` |  |
+| webservice.nodeSelector | object | `{}` |  |
+| webservice.port | int | `80` |  |
+| webservice.readinessProbe | object | `{}` |  |
+| webservice.replicas | int | `1` |  |
+| webservice.resources | object | `{}` |  |
+| webservice.revisionHistoryLimit | string | `""` |  |
+| webservice.securityContext | object | `{}` |  |
+| webservice.service.annotations | object | `{}` |  |
+| webservice.service.enabled | bool | `true` |  |
+| webservice.service.port | int | `80` |  |
+| webservice.storage | object | `{}` |  |
+| webservice.strategy | object | `{}` |  |
+| webservice.terminationGracePeriodSeconds | string | `""` |  |
+| webservice.volumes | list | `[]` |  |
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Wikodit |  | <https://github.com/wikodit> |
+| Anthony Domingue | <anthony@wikodit.fr> |  |
+| Jeremy Trufier | <jeremy@wikodit.fr> |  |
