@@ -1,0 +1,32 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+apiVersion: v1
+description: node-local-dns for ovh cluster
+maintainers:
+- - email: jeremy@wikodit.fr
+  name: Jeremy Trufier (Wikodit)
+- - email: anthony@wikodit.fr
+  name: Anthony Domingue (Wikodit)
+name: wik-node-local-dns
+version: 0.1.0
+
+...
+files:
+  wik-node-local-dns-0.1.0.tgz: sha256:8c7d65e92bf6344c8630d1c7fa9d7ff42e3a9858d5396163644ff62d79b705fe
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEurHO5obhDYc8xr9YMsSQPomdSroFAmRiTrkACgkQMsSQPomd
+SrodsQ/7Br+LmGgn/ceTQQQTpcScXU2PBYsEdVaLYtXpy49v6jOwc8K5uYfmfgTo
+m/e1Xa3x0wGBwYs/CMlxXJsmDgJ6YdZ42WoaLJjLYQ1rtWAOcuS8D9k+F41cWZoy
+9lqx35ZYfRx6RaCJz5lOnte91j3ckEj9W/1OYDIJKxIOezKcJTry0syHXxHxh1Zl
+8kXtO9LRFcLIkBVPOPKFB3QQGHZt/NizoGaAHy1Tpeh3x9G9ckfuMjCRQcs4E+En
+S6SSZ/nfqQ0jPkWQVK42JYNaPJoHNf0Z12wkr5W3OWqcWtFvPcc53nr+P9OCTUgs
+0RvPzj/K6mNXy8Pe6E75FNi8VG0ScKuz4C62dN9//b3zDvT08GMcV23/1XF79wTs
+ephijUbqvZy+5Xq8mve2kaV94rGbxxYI3+wjIB6qfPzbibq7N8sIAIqmhKPj16no
+EBu7UqTMcL/MVQCckiQndLCBU61uv8HUO/5lke3XqnYqHKTZKUZyf06zQiX69mvN
+op65E5MnZO/3p1dde/4/G4wr2mJV6zVRpeHzDGXn8z7ExM4zmGpvwKMA/udkubQx
+Q4wHYa8vzOh0FdL/d0hDzKR26UbAcWJ8DX7rnMX3IG0eoX6DRSrseDuav0wWYOYL
+ojtfNdvJ4adJ/IBEhReeIfg5cXb/YZL1v69tuuQiu7xIZNO1y6k=
+=u9KH
+-----END PGP SIGNATURE-----

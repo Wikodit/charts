@@ -1,0 +1,30 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+apiVersion: v1
+description: Install rbac-manager and deal with users, roles and namespaces
+maintainers:
+- - email: jeremy@wikodit.fr
+  name: Jeremy Trufier (Wikodit)
+name: wik-rbac
+version: 0.1.1
+
+...
+files:
+  wik-rbac-0.1.1.tgz: sha256:c42ac6a6dfe5e00a6a3720295efd5c5efa77923d19f659a06a9c014ddde8f08e
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEurHO5obhDYc8xr9YMsSQPomdSroFAmRiNKcACgkQMsSQPomd
+SrrQAA/7BFchI+VdVjwr9IwzF5uFMFUt/JXs95NYb1lKq+uAB1now5+Azge2OLlP
+BM8ee0gwlGJpDcrheZBkMqEAIPntc+dsY5hXR9wZCVv2snYXrawMf4EMHKsf4l/b
+qruj8UuTNKQkSNoyovyvg8ET+yRkefRDvOr/lL7YDRVCA5d/vm+6+KnaMjFdQX6I
+MToGOFLlkJ4ixz29gq5/suMm9zyfKZM6wdKcIEIooClbou63T/3hR7S19OBGIYKs
+gdVCZxrxwETk0mRN+n7KLT0qF1MS0OcyQr/xbm5RpIQqS0yZdslWVwnU8JjNkR7B
+jgu/i/7Kbn36IEYRhZuqwfBilMYj1MSJngJAOFbOF7HRDlyWz9JIGsIxJuRRNGtk
+LpSRx31XXBtG5l/BNhojWpASr1s5w+/L9Jr6VSEq8Uh2Lnn/O49e61ykDVKNx+pM
+vjCczbeVKX7akW/UJnMIWCTshNEJtEcaIacf/kB/8X0DYdo1Tzc0ANq4CsAIQGzs
+pHHEz9I3kKTCjJouVCv+CfjhIdadgZvxIkgIuH265TE1IPCKb8LxbLgSya+l1zkD
+eMT2o/KQWTVzi/GMk4GuvVTXmwB3Ax+G0FdH7zxZbNWIsK2gSciUckKY41x89SMN
+TXaz8ZT2RPF0eL2ZpqEiVAjN7JohuDdW+aiAdYVSJg151cU701Y=
+=JlOB
+-----END PGP SIGNATURE-----

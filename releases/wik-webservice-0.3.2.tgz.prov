@@ -1,0 +1,32 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+apiVersion: v1
+description: Quick start for a all-in-one webservice
+maintainers:
+- - email: anthony@wikodit.fr
+  name: Anthony Domingue
+- - email: jeremy@wikodit.fr
+  name: Jeremy Trufier
+name: wik-webservice
+version: 0.3.2
+
+...
+files:
+  wik-webservice-0.3.2.tgz: sha256:866952bc0f5da74af8873ba4455de209e496e757d650c7b9d7ac88d4081f17b0
+-----BEGIN PGP SIGNATURE-----
+
+wsFcBAEBCgAQBQJnrKlFCRBdmx8SvqIHHgAAv+kQALHYVzHUnVTt2bucBcsrEXtc
+282Y8rIFPyLRXNIJafl6QCmhpvLngqCaT18tVBe79UnPPzPZ21P76SJ7FtWFCwSD
+kzSX61axPdIp3bK+VX8a6qkarSmD1tsRtfmqFx5ma5KOxe0TcFgiWj0LAuwUbLwN
+ntTNeLhjnF5wL1Yszn+l5Hf0JFff1PebsTYEzFUlUj+2ubdHy+bghPSRuP8aQuMC
+e6lA5rD81woA7PRka8Ab9DbosZcJyt/bkYlZp3HwfvF9dYxwDnI34e3208ZjTqqM
+cHV4JiPst8voMdlSOaemq5swEqlGem7QETwF7hB9OPACQOwsi73WqhCoC0kIVLRo
+7fslL5+Y+ZITXWOBCElJo7a9RTJ6DoVBHAEPVT/dz2kNudsZzULiKa1b806SRGlm
+MEeRD8JRnjj/QhcY2ISMM3ZwhEjxCj756DXDZghyrMj6dL+4dYDz+DmFKeCLMV65
+MoX72gYYb/xfo3Cg6SWMTVwKvpdmonmyClxDtk5gI7ZX874g6jSQjX5/3DjgNcAV
+aQtxGnIHQV5rx+bgpiNq3Yzu4z3j6t8W8RF3174mJGjLr9DxuFIa1/mRXu1ff8tL
+8VdS2A+USa5i2F7mmEErIW5YTmdOeyHYUliMa07LO41VEOMHR3Clm/ASkXRmchhj
+JFkKDImhgyTaHasWQpew
+=In3P
+-----END PGP SIGNATURE-----

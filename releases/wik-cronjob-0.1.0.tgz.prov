@@ -1,0 +1,32 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+apiVersion: v1
+description: Quick start for a all-in-one cronjob
+maintainers:
+- - email: anthony@wikodit.fr
+  name: Anthony Domingue
+- - email: jeremy@wikodit.fr
+  name: Jérémy Trufier
+name: wik-cronjob
+version: 0.1.0
+
+...
+files:
+  wik-cronjob-0.1.0.tgz: sha256:b1fa996adc94f9fd972d4fbaf04b33af58a23549b64a5a62525fd7344997d0cd
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEurHO5obhDYc8xr9YMsSQPomdSroFAmQ32eIACgkQMsSQPomd
+SrqNqxAAkIUtfknCV99+du4JGm4hyIRgYRB5JVvJw093XLLTqPjtERDrtXTn89se
+DmBryL6fE6NvQtiH/Ul3hpOm1Qa3zAgRa6ydxiOtPzfBS98VCnKL0SuhPO9SMMN7
+QDXuW6QqaOR1odm5KZSaPPUqLOlI/84AGK20eeOKfeDNIH1UIWg9aGnRsmnR//dL
+1QaphechctoVMlXuO99mieGPlENg56QxR8Xo7WYrXNB+ibvQgpM2yuztoDBM5uBO
+mte0aqAm5YMmr6uxAgfQKclk8I7K01Wruk21fG2n9NmKGv7McgfosmAcJ9TuKfUm
+KtuSL3n2og1qBrTaaCXtBWT7kmti+lw6LcbVsEa2hy2ORx4tFyvat69Wb0sj1I2J
+R0qDIfyEhxx7qaoCSt57fgYfXE3l7ZK385XxyNNx8OL/pE9EoYk+S4TZ6+lYaxRy
+KgZS+NBOHfOxh1WG44qay9GNhCMksR/AUPAA2PpgMo8nYqoR8NbtExpUU5+muZWD
+sVD0I09grV9KgADEeYlqkq2LIYWGOxfHuIjL0BK1KpXu3F26YGHRogfQDNIL+fYP
+HPGdjUNey8IHwoqRUlsvM4FDkhdHWMiq5Gku7ZRvBBajULBHD7s9Uo3SxDk7j8VC
+Z8jWF6N6zVqmzoOLkqGhy/Y+QQ4ZlPzbvHO5j1EZdQ1EQHjwOfI=
+=aQRt
+-----END PGP SIGNATURE-----
