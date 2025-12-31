@@ -130,6 +130,7 @@ serviceAccount:
 | `networkPolicy.enabled` | Enable NetworkPolicy | `false` |
 | `networkPolicy.ingress` | Custom ingress rules | `[]` |
 | `networkPolicy.egress` | Custom egress rules | `[]` |
+| `webservice.topologySpreadConstraints` | Pod distribution constraints | `[]` |
 | `webservice.nodeSelector` | Node selector | `{}` |
 | `webservice.affinity` | Affinity rules | `{}` |
 | `webservice.strategy` | Deployment strategy | `{}` |
@@ -187,6 +188,44 @@ networkPolicy:
       ports:
         - protocol: TCP
           port: 5432
+```
+
+#### TopologySpreadConstraints
+
+TopologySpreadConstraints control how pods are spread across your cluster to improve high availability:
+
+```yaml
+# Spread pods across different nodes
+webservice:
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: wik-webservice
+          app.kubernetes.io/instance: release-name
+
+# Spread pods across availability zones
+webservice:
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: wik-webservice
+          app.kubernetes.io/instance: release-name
+
+# Multiple constraints for better distribution
+webservice:
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
 ```
 
 ### Additional Containers

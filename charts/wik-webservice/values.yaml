@@ -74,6 +74,25 @@ webservice:
   replicas: 1
   port: 80
 
+  # TopologySpreadConstraints for better pod distribution
+  topologySpreadConstraints: []
+    # Example: Spread pods across nodes
+    # - maxSkew: 1
+    #   topologyKey: kubernetes.io/hostname
+    #   whenUnsatisfiable: DoNotSchedule
+    #   labelSelector:
+    #     matchLabels:
+    #       app.kubernetes.io/name: wik-webservice
+    #       app.kubernetes.io/instance: release-name
+    # Example: Spread pods across zones
+    # - maxSkew: 1
+    #   topologyKey: topology.kubernetes.io/zone
+    #   whenUnsatisfiable: DoNotSchedule
+    #   labelSelector:
+    #     matchLabels:
+    #       app.kubernetes.io/name: wik-webservice
+    #       app.kubernetes.io/instance: release-name
+
   service:
     enabled: true
     port: 80

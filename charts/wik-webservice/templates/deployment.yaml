@@ -15,6 +15,10 @@ spec:
     matchLabels:
       app: {{ template "name" . }}
       release: {{ .Release.Name }}
+{{ if .Values.webservice.topologySpreadConstraints }}
+  topologySpreadConstraints:
+{{ .Values.webservice.topologySpreadConstraints | toYaml | indent 4 }}
+{{ end }}
 {{ if .Values.webservice.strategy }}
   strategy:
 {{ .Values.webservice.strategy | toYaml | indent 4 }}
