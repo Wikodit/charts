@@ -20,7 +20,7 @@
 
 ## Checklist
 
-- [ ] Chart version bumped in `Chart.yaml`
+- [ ] Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format
 - [ ] `helm lint` passes
 - [ ] `helm template` renders correctly
 - [ ] Unit tests pass (if applicable)
