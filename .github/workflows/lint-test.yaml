@@ -111,12 +111,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/share/helm/plugins
-          key: helm-plugins-unittest-${{ runner.os }}-v0.4.4
+          key: helm-plugins-unittest-${{ runner.os }}-v1.0.3
 
       - name: Install helm-unittest plugin
         run: |
           if ! helm plugin list | grep -q unittest; then
-            helm plugin install https://github.com/helm-unittest/helm-unittest.git --version v0.4.4
+            helm plugin install https://github.com/helm-unittest/helm-unittest.git --version v1.0.3
           fi
 
       - name: Run unit tests
