@@ -1,0 +1,48 @@
+suite: configmap tests
+templates:
+  - configmap.yaml
+tests:
+  - it: should create a configmap with plaintext env vars
+    set:
+      webservice:
+        image: nginx:latest
+        env:
+          plaintext:
+            CONFIG_VALUE: test-config
+            ANOTHER_VALUE: another-test
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: data.CONFIG_VALUE
+          value: test-config
+      - equal:
+          path: data.ANOTHER_VALUE
+          value: another-test
+
+  - it: should not create configmap when no plaintext env vars
+    set:
+      webservice:
+        image: nginx:latest
+        env:
+          plaintext: {}
+          secret:
+            SECRET_VAR: secret-value
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should include release name in configmap metadata
+    set:
+      webservice:
+        image: nginx:latest
+        env:
+          plaintext:
+            CONFIG: test
+    asserts:
+      - equal:
+          path: metadata.labels.app.kubernetes.io/name
+          value: wik-webservice
+      - equal:
+          path: metadata.labels.app.kubernetes.io/instance
+          value: release-name

@@ -1,0 +1,93 @@
+suite: ingress tests
+templates:
+  - ingress.yaml
+tests:
+  - it: should create an ingress when enabled
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        ingress:
+          enabled: true
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: spec.rules[0].host
+          value: test.example.com
+
+  - it: should not create an ingress when disabled
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        ingress:
+          enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should use ingressClassName when specified
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        ingress:
+          enabled: true
+          className: nginx
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+
+  - it: should have TLS when tlsAcme is enabled
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        ingress:
+          enabled: true
+          tlsAcme: true
+    asserts:
+      - equal:
+          path: spec.tls[0].hosts[0]
+          value: test.example.com
+      - equal:
+          path: spec.tls[0].secretName
+          value: test-example-com-tls
+
+  - it: should have ingress annotations when specified
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        ingress:
+          enabled: true
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: 200m
+    asserts:
+      - equal:
+          path: metadata.annotations."nginx.ingress.kubernetes.io/proxy-body-size"
+          value: 200m
+
+  - it: should handle multiple hosts
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+          - api.example.com
+        ingress:
+          enabled: true
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: test.example.com
+      - equal:
+          path: spec.rules[1].host
+          value: api.example.com

@@ -1,0 +1,14 @@
+repository:
+  uri: "s3://my-backup-bucket/path"
+  password: "test-password"
+  credentials:
+    awsAccessKeyId: "test-key"
+    awsSecretAccessKey: "test-secret"
+
+backup:
+  enabled: true
+  cron: true
+  schedule: "@daily"
+  tags:
+    - daily
+    - production

@@ -1,0 +1,34 @@
+restoreJob:
+  enabled: false
+  snapshotId: latest
+  tags:
+    - restore
+    - production
+
+repository:
+  uri: "s3://my-backup-bucket/path"
+  password: "test-password"
+  persistence:
+    enabled: true
+    storageClass: "standard"
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+  credentials:
+    awsAccessKeyId: "test-key"
+    awsSecretAccessKey: "test-secret"
+
+backup:
+  enabled: true
+  cron: true
+  schedule: "0 2 * * *"
+  tags:
+    - daily
+    - production
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"

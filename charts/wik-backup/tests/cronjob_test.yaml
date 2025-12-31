@@ -1,0 +1,43 @@
+suite: cronjob tests
+templates:
+  - templates/cronjob.yaml
+tests:
+  - it: should create a cronjob when backup.cron is enabled
+    set:
+      repository:
+        uri: "s3://test"
+        password: "test"
+      backup:
+        enabled: true
+        cron: true
+        schedule: "@daily"
+    asserts:
+      - isKind:
+          of: CronJob
+      - equal:
+          path: spec.schedule
+          value: "@daily"
+
+  - it: should not create a cronjob when backup.cron is disabled
+    set:
+      repository:
+        uri: "s3://test"
+        password: "test"
+      backup:
+        enabled: true
+        cron: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create a job when backup.cron is disabled
+    set:
+      repository:
+        uri: "s3://test"
+        password: "test"
+      backup:
+        enabled: true
+        cron: false
+    asserts:
+      - containsDocument:
+          kind: Job

@@ -1,0 +1,49 @@
+suite: notes tests
+templates:
+  - NOTES.txt
+tests:
+  - it: should render notes with chart name and version
+    set:
+      webservice:
+        image: nginx:latest
+    asserts:
+      - matchRegex:
+          path: "{{-}}"
+          pattern: "wik-webservice"
+
+  - it: should include host information when ingress is enabled
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        ingress:
+          enabled: true
+    asserts:
+      - matchRegex:
+          path: "{{-}}"
+          pattern: "test.example.com"
+
+  - it: should include service information when service is enabled
+    set:
+      webservice:
+        image: nginx:latest
+        service:
+          enabled: true
+          port: 80
+    asserts:
+      - matchRegex:
+          path: "{{-}}"
+          pattern: "80"
+
+  - it: should include metrics information when enabled
+    set:
+      webservice:
+        image: nginx:latest
+        metrics:
+          enabled: true
+          port: 9090
+    asserts:
+      - matchRegex:
+          path: "{{-}}"
+          pattern: "9090"

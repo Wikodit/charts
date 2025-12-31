@@ -1,0 +1,95 @@
+general:
+  sealedSecrets: false
+
+webservice:
+  image: nginx:latest
+  imagePullPolicy: Always
+  replicas: 2
+  port: 80
+  hosts:
+    - test.example.com
+    - api.example.com
+
+  service:
+    enabled: true
+    port: 80
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+
+  metrics:
+    enabled: true
+    port: 9090
+    path: /metrics
+
+  ingress:
+    enabled: true
+    className: nginx
+    tlsAcme: true
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: 200m
+
+  additionalLabels:
+    app.kubernetes.io/component: frontend
+
+  annotations:
+    co.elastic.logs/enabled: "true"
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 80
+    initialDelaySeconds: 30
+    periodSeconds: 10
+
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 80
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+  env:
+    plaintext:
+      ENV_VAR: value
+    secret:
+      SECRET_VAR: value
+
+  nodeSelector:
+    kubernetes.io/os: linux
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                  - eu-west-1a
+
+  storage:
+    data:
+      size: 10Gi
+      storageClass: standard
+
+  volumes:
+    - name: data
+      mountPath: /app/data
+      storage: true

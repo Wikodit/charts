@@ -1,0 +1,63 @@
+suite: deployment tests
+templates:
+  - deployment.yaml
+tests:
+  - it: should create a deployment
+    set:
+      webservice.image: nginx:latest
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: should set custom replicas
+    set:
+      webservice.image: nginx:latest
+      webservice.replicas: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: should have correct container image
+    set:
+      webservice.image: nginx:1.21
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: nginx:1.21
+
+  - it: should have resource limits when specified
+    set:
+      webservice.image: nginx:latest
+      webservice.resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "256Mi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: "500m"
+
+  - it: should have security context when specified
+    set:
+      webservice.image: nginx:latest
+      webservice.securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1000

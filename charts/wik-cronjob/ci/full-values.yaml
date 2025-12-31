@@ -1,0 +1,34 @@
+general:
+  sealedSecrets: false
+
+cronjob:
+  schedule: "0 2 * * *"
+  image: "busybox:latest"
+  imagePullPolicy: Always
+  restartPolicy: OnFailure
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+  env:
+    plaintext:
+      TEST_VAR: "test-value"
+      ANOTHER_VAR: "another-value"
+    secret:
+      SECRET_VAR: "secret-value"
+  nodeSelector:
+    kubernetes.io/os: linux
+  storage:
+    data:
+      size: 1Gi
+      storageClass: standard
+  volumes:
+    - name: data
+      mountPath: /data
+      storage: true

@@ -1,0 +1,43 @@
+image:
+  registry: registry.k8s.io
+  repository: dns/k8s-dns-node-cache
+  tag: 1.22.11
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets:
+    - myRegistryKeySecretName
+
+updateStrategy:
+  rollingUpdate:
+    maxUnavailable: 10%
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 50Mi
+  requests:
+    cpu: 25m
+    memory: 5Mi
+
+upstream:
+  selector:
+    k8s-app: kube-dns
+
+# Additional configuration options if they exist
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/os
+              operator: In
+              values:
+                - linux

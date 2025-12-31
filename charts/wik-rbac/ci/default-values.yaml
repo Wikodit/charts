@@ -1,0 +1,31 @@
+namespaces:
+  - name: dev
+    labels:
+      environment: dev
+    quotas:
+      pods: "10"
+      requests.cpu: "1"
+      requests.memory: 1Gi
+      limits.cpu: "2"
+      limits.memory: 2Gi
+
+serviceAccounts:
+  - name: ci
+
+clusterRoles:
+  - name: secrets-reader
+    labels:
+      rbac-manager: reactiveops.io
+    rules:
+      - apiGroups: [""]
+        resources: ["secrets"]
+        verbs: ["get", "watch", "list"]
+
+bindings:
+  - name: dev-user
+    subjects:
+      - kind: User
+        name: dev@example.com
+    roleBindings:
+      - namespace: dev
+        clusterRole: view

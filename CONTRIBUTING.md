@@ -4,12 +4,29 @@ Thank you for your interest in contributing to Wikodit Helm Charts!
 
 ## Prerequisites
 
-Ensure you have the following tools installed:
+Just two tools needed:
+- [Docker](https://docs.docker.com/get-docker/) - For consistent testing
+- [Helm](https://helm.sh/docs/intro/install/) (v3.14+) - For chart operations
 
-- [Helm](https://helm.sh/docs/intro/install/) (v3.x)
-- [helm-unittest](https://github.com/helm-unittest/helm-unittest)
-- [chart-testing (ct)](https://github.com/helm/chart-testing)
-- [yamllint](https://yamllint.readthedocs.io/)
+## Development Setup
+
+1. Clone the repository:
+   ```bash
+   git clone git@github.com:wikodit/charts.git
+   cd charts
+   ```
+
+2. Test your changes:
+   ```bash
+   # Lint all charts (includes yamllint, schema validation)
+   docker run --rm -v $(pwd):/charts -w /charts quay.io/helmpack/chart-testing:latest ct lint --config ct.yaml
+   
+   # Test chart rendering
+   helm template charts/<chart-name> --dry-run
+   
+   # Optional: Run unit tests (if you want to test deeper)
+   docker run --rm -v $(pwd):/charts -w /charts helmunittest/helm-unittest:latest charts/<chart-name>
+   ```
 
 ## Adding a New Chart
 
@@ -54,9 +71,21 @@ description: Brief description
 type: application
 version: 0.1.0        # Chart version (SemVer)
 appVersion: "1.0.0"   # Application version
+home: https://github.com/wikodit/charts
+sources:
+  - https://github.com/wikodit/charts
 maintainers:
   - name: Wikodit
-    url: https://wikodit.fr
+    url: https://github.com/wikodit
+  - name: Anthony Domingue
+    email: anthony@wikodit.fr
+  - name: Jeremy Trufier
+    email: jeremy@wikodit.fr
+keywords:
+  - wikodit
+  - <chart-specific-keywords>
+annotations:
+  artifacthub.io/license: MIT
 ```
 
 ## Version Bump Policy
@@ -109,13 +138,10 @@ When making changes:
 
 ```bash
 # Lint all charts
-ct lint --all
+docker run --rm -v $(pwd):/charts -w /charts quay.io/helmpack/chart-testing:latest ct lint --config ct.yaml
 
-# Run unit tests for a specific chart
-helm unittest charts/<chart-name>
-
-# Full validation
-helm template test charts/<chart-name> | kubectl apply --dry-run=client -f -
+# Test chart rendering
+helm template charts/<chart-name> --dry-run
 ```
 
 ## Code Style

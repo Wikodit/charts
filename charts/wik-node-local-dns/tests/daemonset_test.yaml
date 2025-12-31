@@ -1,0 +1,45 @@
+suite: daemonset tests
+templates:
+  - templates/daemonset.yaml
+tests:
+  - it: should create a daemonset
+    asserts:
+      - isKind:
+          of: DaemonSet
+
+  - it: should use correct image
+    set:
+      image:
+        tag: 1.22.11
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.k8s.io/dns/k8s-dns-node-cache:1.22.11
+
+  - it: should have resource requests
+    set:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 5Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 25m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 5Mi
+
+  - it: should have resource limits when specified
+    set:
+      resources:
+        limits:
+          cpu: 100m
+          memory: 50Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 50Mi

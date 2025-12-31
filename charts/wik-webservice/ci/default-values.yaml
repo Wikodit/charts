@@ -1,0 +1,6 @@
+webservice:
+  image: nginx:latest
+  hosts:
+    - test.example.com
+  replicas: 1
+  port: 80

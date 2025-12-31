@@ -1,0 +1,108 @@
+namespaces:
+  - name: dev
+    labels:
+      environment: dev
+      project: myproject
+    quotas:
+      pods: "20"
+      requests.cpu: "2"
+      requests.memory: 2Gi
+      limits.cpu: "4"
+      limits.memory: 4Gi
+      requests.nvidia.com/gpu: 2
+    scopeQuotas:
+      - name: medium
+        spec:
+          hard:
+            cpu: "10"
+            memory: 20Gi
+            pods: "10"
+          scopeSelector:
+            matchExpressions:
+            - operator: In
+              scopeName: PriorityClass
+              values: ["medium"]
+    roles:
+      - name: dev-role
+        labels:
+          app: myapp
+        rules:
+          - apiGroups: [""]
+            resources: ["pods", "services"]
+            verbs: ["get", "list", "create", "update", "patch", "delete"]
+          - apiGroups: ["apps"]
+            resources: ["deployments"]
+            verbs: ["get", "list", "create", "update", "patch", "delete"]
+
+  - name: prod
+    labels:
+      environment: production
+      project: myproject
+    quotas:
+      pods: "50"
+      requests.cpu: "5"
+      requests.memory: 5Gi
+      limits.cpu: "10"
+      limits.memory: 10Gi
+
+serviceAccounts:
+  - name: ci
+  - name: app-runner
+  - name: monitoring
+
+clusterRoles:
+  - name: secrets-reader
+    labels:
+      rbac-manager: reactiveops.io
+      purpose: reading-secrets
+    rules:
+      - apiGroups: [""]
+        resources: ["secrets"]
+        verbs: ["get", "watch", "list"]
+
+  - name: pod-reader
+    labels:
+      rbac-manager: reactiveops.io
+      purpose: reading-pods
+    rules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["get", "watch", "list"]
+      - apiGroups: ["apps"]
+        resources: ["deployments", "replicasets"]
+        verbs: ["get", "watch", "list"]
+
+bindings:
+  - name: dev-user
+    subjects:
+      - kind: User
+        name: dev@example.com
+      - kind: ServiceAccount
+        name: ci
+    roleBindings:
+      - namespace: dev
+        clusterRole: view
+      - namespace: dev
+        role: dev-role
+    clusterRoleBindings:
+      - clusterRole: pod-reader
+
+  - name: ops-team
+    subjects:
+      - kind: Group
+        name: ops-team@example.com
+    roleBindings:
+      - namespace: dev
+        clusterRole: edit
+      - namespace: prod
+        clusterRole: edit
+
+  - name: readonly-user
+    subjects:
+      - kind: User
+        name: readonly@example.com
+    roleBindings:
+      - namespace: dev
+        clusterRole: view
+      - namespace: prod
+        clusterRole: view

@@ -1,0 +1,11 @@
+general:
+  sealedSecrets: false
+
+cronjob:
+  schedule: "0 1 * * *"
+  image: "busybox:latest"
+  imagePullPolicy: Always
+  restartPolicy: OnFailure
+  env:
+    plaintext:
+      TEST_VAR: "test-value"

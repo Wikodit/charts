@@ -1,0 +1,66 @@
+suite: pvc tests
+templates:
+  - pvc.yaml
+tests:
+  - it: should create a PVC when storage is defined
+    set:
+      webservice:
+        image: nginx:latest
+        storage:
+          data:
+            size: 10Gi
+            storageClass: standard
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: metadata.name
+          value: release-name-wik-webservice-data
+      - equal:
+          path: spec.resources.requests.storage
+          value: 10Gi
+      - equal:
+          path: spec.storageClassName
+          value: standard
+
+  - it: should not create PVC when storage is not defined
+    set:
+      webservice:
+        image: nginx:latest
+        storage: {}
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create multiple PVCs when multiple storage entries exist
+    set:
+      webservice:
+        image: nginx:latest
+        storage:
+          data:
+            size: 10Gi
+            storageClass: standard
+          logs:
+            size: 5Gi
+            storageClass: fast-ssd
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: 0.metadata.name
+          value: release-name-wik-webservice-data
+      - equal:
+          path: 1.metadata.name
+          value: release-name-wik-webservice-logs
+
+  - it: should use default storage class when not specified
+    set:
+      webservice:
+        image: nginx:latest
+        storage:
+          data:
+            size: 10Gi
+    asserts:
+      - equal:
+          path: spec.storageClassName
+          value: ""

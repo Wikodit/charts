@@ -1,0 +1,34 @@
+suite: cronjob tests
+templates:
+  - templates/cronjob.yaml
+tests:
+  - it: should create a cronjob
+    set:
+      cronjob:
+        image: "busybox:latest"
+    asserts:
+      - isKind:
+          of: CronJob
+      - equal:
+          path: spec.schedule
+          value: "0 1 * * *"
+
+  - it: should use custom schedule
+    set:
+      cronjob:
+        schedule: "*/5 * * * *"
+        image: "busybox:latest"
+    asserts:
+      - equal:
+          path: spec.schedule
+          value: "*/5 * * * *"
+
+  - it: should have correct restart policy
+    set:
+      cronjob:
+        image: "busybox:latest"
+        restartPolicy: Never
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.restartPolicy
+          value: "Never"
