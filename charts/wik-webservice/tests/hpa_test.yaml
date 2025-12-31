@@ -1,0 +1,90 @@
+suite: horizontal pod autoscaler tests
+templates:
+  - hpa.yaml
+tests:
+  - it: should create an HPA when enabled with CPU target
+    set:
+      webservice:
+        image: nginx:latest
+      horizontalPodAutoscaler:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 70
+    asserts:
+      - containsDocument:
+          kind: HorizontalPodAutoscaler
+          apiVersion: autoscaling/v2
+          name: "release-name-wik-webservice"
+      - equal:
+          path: spec.minReplicas
+          value: 2
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+      - equal:
+          path: spec.metrics[0].resource.name
+          value: "cpu"
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 70
+  - it: should not create an HPA when disabled
+    set:
+      webservice:
+        image: nginx:latest
+      horizontalPodAutoscaler:
+        enabled: false
+    asserts:
+      - notContainsDocument:
+          kind: HorizontalPodAutoscaler
+          apiVersion: autoscaling/v2
+  - it: should create an HPA with both CPU and memory targets
+    set:
+      webservice:
+        image: nginx:latest
+      horizontalPodAutoscaler:
+        enabled: true
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 60
+    asserts:
+      - equal:
+          path: spec.metrics[0].resource.name
+          value: "cpu"
+      - equal:
+          path: spec.metrics[1].resource.name
+          value: "memory"
+      - equal:
+          path: spec.metrics[1].resource.target.averageUtilization
+          value: 60
+  - it: should include annotations when provided
+    set:
+      webservice:
+        image: nginx:latest
+      horizontalPodAutoscaler:
+        enabled: true
+        annotations:
+          autoscaling.alpha.kubernetes.io/conditions: "true"
+    asserts:
+      - equal:
+          path: metadata.annotations."autoscaling.alpha.kubernetes.io/conditions"
+          value: "true"
+  - it: should include custom behavior when provided
+    set:
+      webservice:
+        image: nginx:latest
+      horizontalPodAutoscaler:
+        enabled: true
+        behavior:
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+              - type: Percent
+                value: 100
+                periodSeconds: 15
+    asserts:
+      - equal:
+          path: spec.behavior.scaleUp.stabilizationWindowSeconds
+          value: 60
+      - equal:
+          path: spec.behavior.scaleUp.policies[0].value
+          value: 100

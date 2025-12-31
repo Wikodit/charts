@@ -1,0 +1,62 @@
+suite: pod security standard tests
+templates:
+  - deployment.yaml
+tests:
+  - it: should add Pod Security Standard labels when enabled
+    set:
+      webservice:
+        image: nginx:latest
+      podSecurityStandard:
+        enabled: true
+        level: restricted
+    asserts:
+      - equal:
+          path: metadata.labels."pod-security.kubernetes.io/enforce"
+          value: "restricted"
+      - equal:
+          path: metadata.labels."pod-security.kubernetes.io/audit"
+          value: "restricted"
+      - equal:
+          path: metadata.labels."pod-security.kubernetes.io/warn"
+          value: "restricted"
+  - it: should not add Pod Security Standard labels when disabled
+    set:
+      webservice:
+        image: nginx:latest
+      podSecurityStandard:
+        enabled: false
+    asserts:
+      - notExists:
+          path: metadata.labels."pod-security.kubernetes.io/enforce"
+      - notExists:
+          path: metadata.labels."pod-security.kubernetes.io/audit"
+      - notExists:
+          path: metadata.labels."pod-security.kubernetes.io/warn"
+  - it: should support baseline security level
+    set:
+      webservice:
+        image: nginx:latest
+      podSecurityStandard:
+        enabled: true
+        level: baseline
+    asserts:
+      - equal:
+          path: metadata.labels."pod-security.kubernetes.io/enforce"
+          value: "baseline"
+      - equal:
+          path: metadata.labels."pod-security.kubernetes.io/audit"
+          value: "baseline"
+      - equal:
+          path: metadata.labels."pod-security.kubernetes.io/warn"
+          value: "baseline"
+  - it: should support privileged security level
+    set:
+      webservice:
+        image: nginx:latest
+      podSecurityStandard:
+        enabled: true
+        level: privileged
+    asserts:
+      - equal:
+          path: metadata.labels."pod-security.kubernetes.io/enforce"
+          value: "privileged"

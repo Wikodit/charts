@@ -114,16 +114,25 @@ annotations:
 
 ## Version Bump Policy
 
-We follow [Semantic Versioning](https://semver.org/):
+We follow [Semantic Versioning](https://semver.org/) with **automatic version bumping**:
 
-- **MAJOR** (`x.0.0`): Breaking changes (incompatible value changes, removed features)
-- **MINOR** (`0.x.0`): New features (backward-compatible additions)
-- **PATCH** (`0.0.x`): Bug fixes (backward-compatible fixes)
+- **MAJOR** (`x.0.0`): Breaking changes - use `BREAKING CHANGE:` in commit or `!` after type (e.g., `feat!:`)
+- **MINOR** (`0.x.0`): New features - use `feat:` commit prefix
+- **PATCH** (`0.0.x`): Bug fixes - use `fix:`, `chore:`, `docs:`, `perf:`, etc.
 
-When making changes:
-1. Update `version` in `Chart.yaml`
-2. Update `CHANGELOG.md` if present
-3. Document breaking changes clearly
+**Important**: Do NOT manually edit the `version` in `Chart.yaml`. Versions are automatically bumped by the CI/CD pipeline based on conventional commit messages when changes are merged to main.
+
+### Commit Message Format
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add new feature           # -> minor bump
+fix: resolve bug                # -> patch bump
+docs: update readme             # -> patch bump
+feat!: breaking change          # -> major bump
+BREAKING CHANGE: description    # -> major bump
+```
 
 ## Pull Request Process
 

@@ -1,0 +1,59 @@
+suite: pod disruption budget tests
+templates:
+  - poddisruptionbudget.yaml
+tests:
+  - it: should create a PDB when enabled with minAvailable
+    set:
+      webservice:
+        image: nginx:latest
+      podDisruptionBudget:
+        enabled: true
+        minAvailable: 1
+    asserts:
+      - containsDocument:
+          kind: PodDisruptionBudget
+          apiVersion: policy/v1
+          name: "release-name-wik-webservice"
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels."app.kubernetes.io/name"
+          value: "wik-webservice"
+  - it: should create a PDB when enabled with maxUnavailable
+    set:
+      webservice:
+        image: nginx:latest
+      podDisruptionBudget:
+        enabled: true
+        maxUnavailable: 1
+    asserts:
+      - containsDocument:
+          kind: PodDisruptionBudget
+          apiVersion: policy/v1
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+  - it: should not create a PDB when disabled
+    set:
+      webservice:
+        image: nginx:latest
+      podDisruptionBudget:
+        enabled: false
+    asserts:
+      - notContainsDocument:
+          kind: PodDisruptionBudget
+          apiVersion: policy/v1
+  - it: should include annotations when provided
+    set:
+      webservice:
+        image: nginx:latest
+      podDisruptionBudget:
+        enabled: true
+        minAvailable: 1
+        annotations:
+          example.com/annotation: "test"
+    asserts:
+      - equal:
+          path: metadata.annotations."example.com/annotation"
+          value: "test"

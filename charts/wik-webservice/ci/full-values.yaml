@@ -84,12 +84,13 @@ webservice:
                 values:
                   - eu-west-1a
 
-  storage:
-    data:
-      size: 10Gi
-      storageClass: standard
-
   volumes:
     - name: data
       mountPath: /app/data
-      storage: true
+      storage:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: standard

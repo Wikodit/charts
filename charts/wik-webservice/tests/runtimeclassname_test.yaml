@@ -1,0 +1,43 @@
+suite: runtime class name tests
+templates:
+  - deployment.yaml
+tests:
+  - it: should not set runtimeClassName when empty
+    set:
+      webservice:
+        image: nginx:latest
+      runtimeClassName: ""
+    asserts:
+      - notExists:
+          path: spec.template.spec.runtimeClassName
+  - it: should set runtimeClassName when provided
+    set:
+      webservice:
+        image: nginx:latest
+      runtimeClassName: "gvisor"
+    asserts:
+      - equal:
+          path: spec.template.spec.runtimeClassName
+          value: "gvisor"
+  - it: should support kata runtime class
+    set:
+      webservice:
+        image: nginx:latest
+      runtimeClassName: "kata"
+    asserts:
+      - equal:
+          path: spec.template.spec.runtimeClassName
+          value: "kata"
+  - it: should work with other pod settings
+    set:
+      webservice:
+        image: nginx:latest
+        enableServiceLinks: true
+      runtimeClassName: "gvisor"
+    asserts:
+      - equal:
+          path: spec.template.spec.runtimeClassName
+          value: "gvisor"
+      - equal:
+          path: spec.template.spec.enableServiceLinks
+          value: true

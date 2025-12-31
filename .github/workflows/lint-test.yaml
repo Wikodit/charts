@@ -35,7 +35,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.3
+          version: v3.19.4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -68,34 +68,56 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     if: needs.lint.outputs.changed == 'true'
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.3
+          version: v3.19.4
 
-      - name: Cache Helm plugins
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/share/helm/plugins
-          key: helm-plugins-unittest-${{ runner.os }}
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.7.0
+
+      - name: Get changed charts
+        id: set-matrix
+        run: |
+          # Use main as target branch for push events
+          TARGET_BRANCH="main"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TARGET_BRANCH="${{ github.base_ref }}"
+          fi
+
+          changed=$(ct list-changed --config ct.yaml --target-branch $TARGET_BRANCH 2>/dev/null || echo "")
+          if [[ -z "$changed" ]]; then
+            # Fallback: check git diff
+            changed=$(git diff --name-only origin/$TARGET_BRANCH HEAD -- charts/ 2>/dev/null | grep -oP 'charts/\K[^/]+' | sort -u || echo "")
+          fi
+
+          if [[ -n "$changed" ]]; then
+            CHARTS=$(echo "$changed" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          else
+            CHARTS='[]'
+          fi
+
+          echo "matrix={\"chart\":$CHARTS}" >> "$GITHUB_OUTPUT"
 
       - name: Install helm-unittest plugin
         run: |
-          if ! helm plugin list | grep -q unittest; then
-            helm plugin install https://github.com/helm-unittest/helm-unittest.git
-          fi
+          helm plugin install https://github.com/helm-unittest/helm-unittest.git
 
       - name: Run unit tests
         run: |
           failed=0
-          for chart in charts/*/; do
-            if [[ -d "${chart}tests" ]]; then
-              echo "Testing ${chart}"
-              if ! helm unittest "${chart}"; then
+          for chart in ${{ fromJson(needs.lint.outputs.charts) }}; do
+            if [[ -d "charts/${chart}/tests" ]]; then
+              echo "Testing charts/${chart}"
+              if ! helm unittest "charts/${chart}"; then
                 failed=1
               fi
             fi
@@ -113,7 +135,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.3
+          version: v3.19.4
 
       - name: Install kubeconform
         run: |
@@ -123,18 +145,18 @@ jobs:
       - name: Validate manifests
         run: |
           failed=0
-          for chart in charts/*/; do
-            chart_name=$(basename "$chart")
-            echo "Validating ${chart_name}"
+          for chart in ${{ fromJson(needs.lint.outputs.charts) }}; do
+            chart_path="charts/${chart}"
+            echo "Validating ${chart}"
 
             # Use ci values if available, otherwise default
             values_file=""
-            if [[ -f "${chart}ci/default-values.yaml" ]]; then
-              values_file="-f ${chart}ci/default-values.yaml"
+            if [[ -f "${chart_path}ci/default-values.yaml" ]]; then
+              values_file="-f ${chart_path}ci/default-values.yaml"
             fi
 
-            helm dependency update "$chart" 2>/dev/null || true
-            if ! helm template "$chart" $values_file | kubeconform -strict -summary -output json; then
+            helm dependency update "$chart_path" 2>/dev/null || true
+            if ! helm template "$chart_path" $values_file | kubeconform -strict -summary -output json; then
               failed=1
             fi
             echo "::endgroup::"
@@ -145,6 +167,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     if: needs.lint.outputs.changed == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.lint.outputs.charts) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -153,7 +178,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
-          scan-ref: 'charts/'
+          scan-ref: 'charts/${{ matrix.chart }}'
           scanners: 'misconfig'
           format: 'table'
           exit-code: '1'
@@ -173,7 +198,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.3
+          version: v3.19.4
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.7.0
