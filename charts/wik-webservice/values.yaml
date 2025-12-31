@@ -59,6 +59,13 @@ serviceMonitor:
 # Runtime class for container isolation (gVisor, Kata, etc.)
 runtimeClassName: ""
 
+# Pod Security Standards (Kubernetes 1.25+)
+podSecurityStandard:
+  # Enable Pod Security Standards labels
+  enabled: true
+  # Security level: privileged, baseline, restricted
+  level: restricted
+
 # HorizontalPodAutoscaler configuration
 horizontalPodAutoscaler:
   # Enable HPA

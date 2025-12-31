@@ -157,6 +157,8 @@ webservice:
 | `horizontalPodAutoscaler.targetCPUUtilizationPercentage` | CPU target | `80` |
 | `horizontalPodAutoscaler.targetMemoryUtilizationPercentage` | Memory target | `null` |
 | `runtimeClassName` | Runtime class for isolation | `""` (default) |
+| `podSecurityStandard.enabled` | Enable Pod Security Standards | `true` |
+| `podSecurityStandard.level` | Security level | `restricted` |
 
 #### Metrics and Monitoring
 
@@ -241,6 +243,31 @@ runtimeClassName: ""
 ```
 
 **Note**: Runtime classes must be installed on the cluster before use. gVisor and Kata provide stronger isolation but may have performance overhead.
+
+#### Pod Security Standards
+
+Pod Security Standards (PSS) replace Pod Security Policies in Kubernetes 1.25+. They enforce security policies at the namespace level:
+
+```yaml
+# Enable restricted security level (default)
+podSecurityStandard:
+  enabled: true
+  level: restricted
+
+# Use baseline for less strict requirements
+podSecurityStandard:
+  enabled: true
+  level: baseline
+
+# Disable Pod Security Standards
+podSecurityStandard:
+  enabled: false
+```
+
+**Security Levels:**
+- **restricted**: Most secure - non-root, read-only FS, no privileged, resource limits required
+- **baseline**: Medium security - prevents obvious security issues
+- **privileged**: No restrictions - not recommended for production
 
 ### Scheduling
 

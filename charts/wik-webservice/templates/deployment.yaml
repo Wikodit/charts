@@ -6,8 +6,13 @@ metadata:
   labels:
     app: {{ template "name" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{ if .Values.podSecurityStandard.enabled }}
+    pod-security.kubernetes.io/enforce: {{ .Values.podSecurityStandard.level }}
+    pod-security.kubernetes.io/audit: {{ .Values.podSecurityStandard.level }}
+    pod-security.kubernetes.io/warn: {{ .Values.podSecurityStandard.level }}
+{{ end }}
 spec:
   replicas: {{ .Values.webservice.replicas }}
   revisionHistoryLimit: {{ .Values.webservice.revisionHistoryLimit }}
