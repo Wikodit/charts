@@ -195,7 +195,7 @@ jobs:
         if: vars.HARBOR_REGISTRY != ''
         run: |
           echo "${{ secrets.HARBOR_PASSWORD }}" | helm registry login ${{ vars.HARBOR_REGISTRY }} \
-            -u ${{ secrets.HARBOR_USERNAME }} --password-stdin
+            -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
 
       - name: Push to Harbor
         if: vars.HARBOR_REGISTRY != ''
@@ -215,7 +215,7 @@ jobs:
 
           # Authenticate with Harbor for Cosign
           echo "${{ secrets.HARBOR_PASSWORD }}" | cosign login ${{ vars.HARBOR_REGISTRY }} \
-            -u ${{ secrets.HARBOR_USERNAME }} --password-stdin
+            -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
 
           cosign sign --yes "${IMAGE}"
           echo "Signed ${IMAGE}"
