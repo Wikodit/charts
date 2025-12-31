@@ -111,12 +111,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/share/helm/plugins
-          key: helm-plugins-unittest-${{ runner.os }}-v1.0.3
+          key: helm-plugins-${{ runner.os }}-${{ hashFiles('**/lint-test.yaml') }}
 
       - name: Install helm-unittest plugin
         run: |
+          helm plugin uninstall unittest || true
           if ! helm plugin list | grep -q unittest; then
-            helm plugin install https://github.com/helm-unittest/helm-unittest.git --version v1.0.3
+            helm plugin install https://github.com/helm-unittest/helm-unittest.git
           fi
 
       - name: Run unit tests
