@@ -38,10 +38,33 @@ Just two tools needed:
 2. Create the required files:
    - `Chart.yaml` - Chart metadata
    - `values.yaml` - Default configuration values
-   - `README.md` - Chart documentation
+   - `README.md.gotmpl` - Chart documentation template (NOT README.md!)
    - `templates/` - Kubernetes manifest templates
 
 3. Follow the [chart structure requirements](#chart-structure-requirements)
+
+## Documentation (IMPORTANT)
+
+**DO NOT EDIT `README.md` FILES DIRECTLY!**
+
+All chart README.md files are automatically generated from `README.md.gotmpl` templates:
+
+- Edit `charts/<chart>/README.md.gotmpl` instead of `README.md`
+- The `docs.yaml` workflow automatically generates README.md from the template
+- Any manual edits to README.md will be overwritten on the next push
+
+To update documentation:
+1. Modify the appropriate `.gotmpl` file
+2. Run `helm-docs` locally to preview: `helm-docs --chart-search-root=charts`
+3. Commit both the template changes and generated README.md
+
+### Adding Documentation to Templates
+
+When editing `README.md.gotmpl`:
+- Use Helm template functions: `{{ template "chart.version" . }}`
+- Include installation examples with OCI registry
+- Add configuration tables with default values
+- The template will be processed with chart metadata automatically
 
 ## Chart Structure Requirements
 
@@ -51,7 +74,8 @@ Each chart must include:
 charts/<chart-name>/
 ├── Chart.yaml          # Required: Chart metadata
 ├── values.yaml         # Required: Default values
-├── README.md           # Required: Documentation
+├── README.md           # Generated: Documentation (DO NOT EDIT)
+├── README.md.gotmpl    # Required: Documentation template
 ├── templates/          # Required: Template files
 │   ├── _helpers.tpl    # Template helpers
 │   ├── NOTES.txt       # Post-install notes
@@ -133,6 +157,16 @@ When making changes:
 
 - Unit tests using helm-unittest
 - Integration tests with chart-testing
+
+### Documentation Enforcement
+
+**Important**: The repository has automated safeguards for documentation:
+
+1. **Pre-commit hooks**: Run `helm-docs` automatically to ensure README.md matches templates
+2. **CI/CD workflow**: The `docs.yaml` workflow will overwrite any manual README.md changes
+3. **PR comments**: If documentation is out of date, the CI will add a warning comment to the PR
+
+**Rule**: Always edit `README.md.gotmpl`, never `README.md` directly!
 
 ### Running Tests Locally
 
