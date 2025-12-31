@@ -43,6 +43,9 @@ spec:
 {{ end }}
       automountServiceAccountToken: false
       enableServiceLinks: {{ .Values.webservice.enableServiceLinks }}
+{{ if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName }}
+{{ end }}
 {{ if .Values.webservice.hostAliases }}
       hostAliases:
 {{ .Values.webservice.hostAliases | toYaml | indent 8 }}

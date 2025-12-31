@@ -156,6 +156,7 @@ webservice:
 | `horizontalPodAutoscaler.maxReplicas` | Maximum replicas | `5` |
 | `horizontalPodAutoscaler.targetCPUUtilizationPercentage` | CPU target | `80` |
 | `horizontalPodAutoscaler.targetMemoryUtilizationPercentage` | Memory target | `null` |
+| `runtimeClassName` | Runtime class for isolation | `""` (default) |
 
 #### Metrics and Monitoring
 
@@ -223,6 +224,23 @@ horizontalPodAutoscaler:
           value: 10
           periodSeconds: 60
 ```
+
+#### Runtime Class
+
+Runtime class allows using alternative container runtimes for stronger isolation:
+
+```yaml
+# Use gVisor for user-space kernel isolation
+runtimeClassName: "gvisor"
+
+# Use Kata Containers for VM-level isolation
+runtimeClassName: "kata"
+
+# Default (regular container runtime)
+runtimeClassName: ""
+```
+
+**Note**: Runtime classes must be installed on the cluster before use. gVisor and Kata provide stronger isolation but may have performance overhead.
 
 ### Scheduling
 
