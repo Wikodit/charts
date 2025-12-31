@@ -234,6 +234,11 @@ spec:
             optional: {{ .secret.optional }}
 {{ end }}
 
+{{ if hasKey . "emptyDir" }}
+        - name: {{ .name }}
+          emptyDir: {{ if eq (len .emptyDir) 0 }}{}{{ else }}{{ .emptyDir | toJson }}{{ end }}
+{{ end }}
+
 {{ end }}
 
 {{ end }}

@@ -294,7 +294,7 @@ webservice:
     #             values:
     #               - eu-west-1a
 
-  # Volume mounts (supports PVC, ConfigMap, Secret)
+  # Volume mounts (supports PVC, ConfigMap, Secret, emptyDir)
   volumes: []
     # Mount from PVC (storage contains the PVC spec)
     # - name: data
@@ -306,6 +306,11 @@ webservice:
     #       requests:
     #         storage: 10Gi
     #     storageClassName: standard
+    #
+    # Mount emptyDir (ephemeral storage)
+    # - name: cache
+    #   mountPath: /tmp/cache
+    #   emptyDir: {}
     #
     # Mount from ConfigMap
     # - name: config

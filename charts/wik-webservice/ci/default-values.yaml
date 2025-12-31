@@ -4,3 +4,12 @@ webservice:
     - test.example.com
   replicas: 1
   port: 80
+
+  # nginx needs writable dirs when using readOnlyRootFilesystem
+  volumes:
+    - name: nginx-cache
+      mountPath: /var/cache/nginx
+      emptyDir: {}
+    - name: nginx-run
+      mountPath: /var/run
+      emptyDir: {}
