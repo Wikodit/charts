@@ -1,9 +1,9 @@
 webservice:
-  image: nginx:latest
+  image: nginxinc/nginx-unprivileged:latest
   hosts:
     - test.example.com
   replicas: 1
-  port: 80
+  port: 8080
 
   # nginx needs writable dirs when using readOnlyRootFilesystem
   volumes:
