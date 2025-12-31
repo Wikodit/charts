@@ -48,6 +48,9 @@ spec:
 {{ end }}
       automountServiceAccountToken: false
       enableServiceLinks: {{ .Values.webservice.enableServiceLinks }}
+      hostNetwork: {{ .Values.webservice.hostNetwork }}
+      hostPID: {{ .Values.webservice.hostPID }}
+      hostIPC: {{ .Values.webservice.hostIPC }}
 {{ if .Values.runtimeClassName }}
       runtimeClassName: {{ .Values.runtimeClassName }}
 {{ end }}

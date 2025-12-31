@@ -200,6 +200,11 @@ webservice:
     # runAsGroup: 1000
     # fsGroup: 1000
 
+  # Host protection (explicitly set to secure defaults)
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+
   # Enable service links (injects all services as environment variables)
   enableServiceLinks: false
 

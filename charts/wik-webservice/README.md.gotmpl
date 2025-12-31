@@ -84,6 +84,9 @@ helm install my-app ./wik-webservice -f values.yaml
 | `webservice.securityContext` | Pod-level security context | `{}` |
 | `webservice.containerSecurityContext` | Container-level security context | `{}` |
 | `webservice.enableServiceLinks` | Enable service links injection | `false` |
+| `webservice.hostNetwork` | Access host network namespace | `false` |
+| `webservice.hostPID` | Access host PID namespace | `false` |
+| `webservice.hostIPC` | Access host IPC namespace | `false` |
 
 #### ServiceAccount Configuration
 
@@ -124,6 +127,25 @@ webservice:
 webservice:
   enableServiceLinks: true
 ```
+
+#### Host Protection
+
+Host protection settings prevent pods from accessing host resources:
+
+```yaml
+# Default (all host protections disabled)
+webservice:
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+
+# Enable host network access (rarely needed)
+webservice:
+  hostNetwork: true
+  # Note: This allows the pod to access the host's network interface
+```
+
+**Warning**: Enabling host access (hostNetwork, hostPID, hostIPC) significantly reduces isolation and should only be used when absolutely necessary.
 
 ### Environment Variables
 

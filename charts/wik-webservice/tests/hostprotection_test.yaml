@@ -1,0 +1,63 @@
+suite: host protection tests
+templates:
+  - deployment.yaml
+tests:
+  - it: should set host protection to false by default
+    set:
+      webservice:
+        image: nginx:latest
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: false
+      - equal:
+          path: spec.template.spec.hostPID
+          value: false
+      - equal:
+          path: spec.template.spec.hostIPC
+          value: false
+  - it: should allow enabling hostNetwork when needed
+    set:
+      webservice:
+        image: nginx:latest
+        hostNetwork: true
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.hostPID
+          value: false
+      - equal:
+          path: spec.template.spec.hostIPC
+          value: false
+  - it: should allow enabling hostPID when needed
+    set:
+      webservice:
+        image: nginx:latest
+        hostPID: true
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: false
+      - equal:
+          path: spec.template.spec.hostPID
+          value: true
+      - equal:
+          path: spec.template.spec.hostIPC
+          value: false
+  - it: should allow enabling hostIPC when needed
+    set:
+      webservice:
+        image: nginx:latest
+        hostIPC: true
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: false
+      - equal:
+          path: spec.template.spec.hostPID
+          value: false
+      - equal:
+          path: spec.template.spec.hostIPC
+          value: true
