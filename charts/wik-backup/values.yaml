@@ -14,10 +14,10 @@ restoreJob:
 # Restic repository
 repository:
   # Location of the restic repository
-  uri: "" # s3:url/container/path
+  uri: "s3://example.com/bucket/path" # s3:url/container/path
 
   # Password of the restic repository
-  password:
+  password: ""
 
   # To use when the restic repository is on a volume
   persistence:
@@ -72,6 +72,17 @@ backup:
   # Additional tags to give to the backup in the repository
   tags: []
 
+  # Database configuration for backup cronjob
+  database:
+    host: ""
+    port: ""
+    databaseName: ""
+    existingSecret:
+      name: ""
+      userKey: user
+      passwordKey: password
+      mongoUriKey: mongoUri
+
 # Database to backup/restore (when mode=utility, HOWEVER also needed for mode=files when enableDbLock is enabled)
 targetDatabase:
   # When not specified user/password as well as db credentials will be stored in same secret
@@ -88,10 +99,26 @@ targetDatabase:
   databaseName: ""
   connectionOptions: {}
   #   # Exemple for mongo:
-  #   authSource: admin
-  #   readPreference: primary
-  #   ssl: "false"
-  #   directConnection: "true"
+  #   # authSource: admin
+  #   # readPreference: primary
+  #   # ssl: "false"
+  #   # directConnection: "true"
+
+# Database configuration for templates (legacy support)
+database:
+  host: "" # for mongo can be `host1:port1,host2:port2,...`
+  port: "" # default to guessing port from the backup.adapter value
+  databaseName: ""
+  auth:
+    user: ""
+    password: ""
+  existingSecret:
+    name: ""
+    userKey: user
+    passwordKey: password
+    mongoUriKey: mongoUri
+  existingClaim: ""
+  mountPath: ""
 
 # Volume to backup (when mode=files)
 targetVolume:
@@ -251,6 +278,19 @@ affinity: {}
 ## ref: https://kubernetes.io/docs/user-guide/node-selection/
 ##
 nodeSelector: {}
+
+## WAIOB (WAI-Online Backup) configuration
+##
+waiobArgs:
+  ## @param waiobArgs.syslogForceColor Force color output in syslog
+  ##
+  syslogForceColor: "false"
+  ## @param waiobArgs.adapter Backup adapter to use
+  ##
+  adapter: "fs"
+  ## @param waiobArgs.retentionPolicy Retention policy for backups
+  ##
+  retentionPolicy: "hourly=24 daily=7 weekly=5 monthly=12 yearly=5 last=10"
 
 ## @param tolerations Tolerations for pod assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/

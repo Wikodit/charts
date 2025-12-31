@@ -42,7 +42,7 @@ spec:
           - backend:
               service:
                 name: {{ template "fullname" $root }}
-                port: 
+                port:
                   number: 80
             pathType: Prefix
             path: /

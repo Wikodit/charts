@@ -1,6 +1,6 @@
 {{ $root := . }}
-{{ if .Values.cronJob.volumes }}
-{{ range .Values.cronJob.volumes }}
+{{ if .Values.cronjob.volumes }}
+{{ range .Values.cronjob.volumes }}
 {{ if .storage }}
 kind: PersistentVolumeClaim
 apiVersion: v1

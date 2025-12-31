@@ -14,9 +14,22 @@ repository:
     accessModes:
       - ReadWriteOnce
     size: 10Gi
+    pvc:
+      resources:
+        storage: "10Gi"
   credentials:
     awsAccessKeyId: "test-key"
     awsSecretAccessKey: "test-secret"
+
+database:
+  host: "localhost"
+  port: 5432
+  databaseName: "testdb"
+  auth:
+    user: "testuser"
+    password: "testpass"
+  existingClaim: ""
+  mountPath: "/data"
 
 backup:
   enabled: true
@@ -25,10 +38,26 @@ backup:
   tags:
     - daily
     - production
+  adapter: "fs"
+  mode: "files"
+  database:
+    host: "localhost"
+    port: 5432
+    databaseName: "testdb"
+    existingSecret:
+      name: ""
+      userKey: "user"
+      passwordKey: "password"
+      mongoUriKey: "mongoUri"
   resources:
     requests:
       memory: "256Mi"
       cpu: "100m"
     limits:
       memory: "512Mi"
-      cpu: "500m"
+      cpu: "200m"
+
+waiobArgs:
+  syslogForceColor: "false"
+  adapter: "mysql"
+  retentionPolicy: "--keep-daily 30 --keep-weekly 12 --keep-monthly 12"

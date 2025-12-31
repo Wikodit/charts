@@ -10,27 +10,27 @@ metadata:
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
-spec: 
+spec:
   schedule: {{ .Values.schedule }}
   jobTemplate:
     spec:
       template:
         spec:
           affinity: {{ toYaml .Values.affinity | nindent 12 }}
-          volumes: 
+          volumes:
             {{- if .Values.repository.persistence.enabled }}
             - name: backup-data
-            persistentVolumeClaim:
-              {{- if not .Values.repository.persistence.existingClaim }}
-              claimName: {{ include "default.volume.claimName" }}
-              {{- else }}
-              claimName: {{ .Values.repository.persistence.existingClaim }}
-              {{- end }}
+              persistentVolumeClaim:
+                {{- if not .Values.repository.persistence.existingClaim }}
+                claimName: {{ include "default.volume.claimName" . }}
+                {{- else }}
+                claimName: {{ .Values.repository.persistence.existingClaim }}
+                {{- end }}
             {{- end }}
             {{- if .Values.database.existingClaim }}
             - name: data
-            persistentVolumeClaim:
-              claimName: {{ .Values.database.existingClaim }}
+              persistentVolumeClaim:
+                claimName: {{ .Values.database.existingClaim }}
             {{- end }}
           containers:
             - name: backup
@@ -59,7 +59,7 @@ spec:
                   value: {{ include "backup.databasePort" . | quote }}
                 - name: DB_DATABASE
                   value: {{ .Values.backup.database.databaseName | quote }}
-                {{ - end }}
+                {{- end }}
                 - name: RESTIC_REPOSITORY
                   value: {{ .Values.repository.uri | quote }}
                 - name: RESTIC_PASSWORD
@@ -83,6 +83,8 @@ spec:
                 - secretRef:
                     name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
                 {{- end }}
+                - secretRef:
+                    name: "{{ include "backup.fullname" . }}-env"
               volumeMounts:
                 {{- if .Values.repository.persistence.enabled }}
                 - mountPath: {{ .Values.repository.persistence.mountPath }}
@@ -93,16 +95,5 @@ spec:
                 - mountPath: {{ .Values.database.mountPath }}
                   name: data
                 {{- end }}
-              envFrom:
-                {{- if .Values.extraEnvVarsCM }}
-                - configMapRef:
-                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsCM "context" $) }}
-                {{- end }}
-                {{- if .Values.extraEnvVarsSecret }}
-                - secretRef:
-                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
-                {{- end }}
-              - secretRef:
-                  name: "{{ include "backup.fullname" . }}-env"
               resources: {{ toYaml .Values.resources | nindent 16 }}
           restartPolicy: {{ .Values.restartPolicy }}

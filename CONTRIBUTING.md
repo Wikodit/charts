@@ -20,10 +20,10 @@ Just two tools needed:
    ```bash
    # Lint all charts (includes yamllint, schema validation)
    docker run --rm -v $(pwd):/charts -w /charts quay.io/helmpack/chart-testing:latest ct lint --config ct.yaml
-   
+
    # Test chart rendering
    helm template charts/<chart-name> --dry-run
-   
+
    # Optional: Run unit tests (if you want to test deeper)
    docker run --rm -v $(pwd):/charts -w /charts helmunittest/helm-unittest:latest charts/<chart-name>
    ```
@@ -109,10 +109,10 @@ When making changes:
    ```bash
    # Lint the chart
    helm lint charts/<chart-name>
-   
+
    # Run unit tests
    helm unittest charts/<chart-name>
-   
+
    # Template validation
    helm template charts/<chart-name>
    ```

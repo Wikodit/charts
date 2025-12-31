@@ -9,7 +9,7 @@ namespaces:
       requests.memory: 2Gi
       limits.cpu: "4"
       limits.memory: 4Gi
-      requests.nvidia.com/gpu: 2
+      requests.nvidia.com/gpu: "2"
     scopeQuotas:
       - name: medium
         spec:
@@ -19,9 +19,9 @@ namespaces:
             pods: "10"
           scopeSelector:
             matchExpressions:
-            - operator: In
-              scopeName: PriorityClass
-              values: ["medium"]
+              - operator: In
+                scopeName: PriorityClass
+                values: ["medium"]
     roles:
       - name: dev-role
         labels:

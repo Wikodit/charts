@@ -37,7 +37,7 @@ spec:
         image: {{ include "node-cache.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         resources: {{- toYaml .Values.resources | nindent 10 }}
-        args: 
+        args:
           - -localip
           - 169.254.0.100,10.3.0.10
           - -conf
@@ -88,4 +88,3 @@ spec:
           items:
             - key: Corefile
               path: Corefile.base
-

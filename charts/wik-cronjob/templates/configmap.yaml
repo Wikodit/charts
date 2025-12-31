@@ -22,18 +22,18 @@ data:
 {{- end -}}
 
 {{ $root := . }}
-{{ if .Values.cronJob.env.plaintext }}
-{{ template "configmap" (list .Values.cronJob $) }}
+{{ if .Values.cronjob.env.plaintext }}
+{{ template "configmap" (list .Values.cronjob $) }}
 {{ end }}
 
-{{ range .Values.cronJob.additionalContainers }}
+{{ range .Values.cronjob.additionalContainers }}
 {{ if .env.plaintext }}
 ---
 {{ template "configmap" (list . $) }}
 {{ end }}
 {{ end }}
 
-{{ range .Values.cronJob.initContainers }}
+{{ range .Values.cronjob.initContainers }}
 {{ if .env.plaintext }}
 ---
 {{ template "configmap" (list . $) }}

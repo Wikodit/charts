@@ -1,12 +1,14 @@
 general:
-  # Create SealedSecret with encrypted value 
+  # Create SealedSecret with encrypted value
   # instead of Secret with plaintext value
   sealedSecrets: false
 
 cronjob:
   schedule: "0 1 * * *"
   image:
-  imagePullPolicy: Always
+    repository: ""
+    tag: ""
+    pullPolicy: Always
   imagePullAuth:
     registry: ""
     username: ""
@@ -24,10 +26,10 @@ cronjob:
     # limits:
     #   memory: "1Gi"
     #   cpu: "500m"
-      
+
   env:
     plaintext: {}
-    #  PLAINTEXT_VAR: value 
+    #  PLAINTEXT_VAR: value
 
     # If using general.sealedSecrets, encrypted value must be used for secret
     secret: {}

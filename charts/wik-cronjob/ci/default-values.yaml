@@ -3,8 +3,10 @@ general:
 
 cronjob:
   schedule: "0 1 * * *"
-  image: "busybox:latest"
-  imagePullPolicy: Always
+  image:
+    repository: "busybox"
+    tag: "latest"
+    pullPolicy: Always
   restartPolicy: OnFailure
   env:
     plaintext:

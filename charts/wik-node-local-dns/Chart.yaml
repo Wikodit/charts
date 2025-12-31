@@ -25,3 +25,9 @@ keywords:
 
 annotations:
   artifacthub.io/license: MIT
+
+dependencies:
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    version: 2.x.x
+    condition: common.enabled

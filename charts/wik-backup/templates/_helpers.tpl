@@ -7,7 +7,7 @@ Expand the name of the chart.
 
 {{- define "default.volume.claimName" -}}
 "{{ .Release.Name }}-backup-data"
-{{-end }}
+{{- end -}}
 
 {{- define "common.names.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
@@ -85,8 +85,8 @@ Create the name of the service account to use
 Return the DB Auth Secret Name
 */}}
 {{- define "backup.dbAuthSecret" -}}
-{{- if .Values.backup.database.existingSecret }}
-    {{- printf "%s" .Values.backup.database.existingSecret -}}
+{{- if .Values.backup.database.existingSecret.name }}
+    {{- printf "%s" .Values.backup.database.existingSecret.name -}}
 {{- else -}}
     {{- printf "%s" (include "common.names.fullname" .) -}}
 {{- end -}}
@@ -118,4 +118,4 @@ Return the Database Port
 {{- else -}}
     {{- printf "%d" 0 -}}
 {{- end -}}
-{{ - end -}}
+{{- end -}}

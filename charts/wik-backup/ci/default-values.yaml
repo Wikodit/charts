@@ -5,6 +5,16 @@ repository:
     awsAccessKeyId: "test-key"
     awsSecretAccessKey: "test-secret"
 
+database:
+  host: "localhost"
+  port: 5432
+  databaseName: "testdb"
+  auth:
+    user: "testuser"
+    password: "testpass"
+  existingClaim: ""
+  mountPath: "/data"
+
 backup:
   enabled: true
   cron: true
@@ -12,3 +22,22 @@ backup:
   tags:
     - daily
     - production
+  adapter: "fs"
+  mode: "files"
+  database:
+    host: "localhost"
+    port: 5432
+    databaseName: "testdb"
+    existingSecret:
+      name: ""
+      userKey: "user"
+      passwordKey: "password"
+      mongoUriKey: "mongoUri"
+
+waiobArgs:
+  syslogForceColor: "false"
+  adapter: "fs"
+  retentionPolicy: "--keep-daily 30"
+
+image:
+  pullPolicy: "IfNotPresent"
