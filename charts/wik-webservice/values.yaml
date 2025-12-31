@@ -204,9 +204,11 @@ webservice:
     # requests:
     #   memory: "512Mi"
     #   cpu: "250m"
+    #   ephemeral-storage: "1Gi"
     # limits:
     #   memory: "1Gi"
     #   cpu: "500m"
+    #   ephemeral-storage: "2Gi"
 
   hostAliases: []
     # - ip: "127.0.0.1"

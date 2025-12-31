@@ -1,0 +1,44 @@
+suite: ephemeral storage tests
+templates:
+  - deployment.yaml
+tests:
+  - it: should add ephemeral storage limits by default
+    set:
+      webservice:
+        image: nginx:latest
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "1Gi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
+          value: "2Gi"
+  - it: should allow custom ephemeral storage limits
+    set:
+      webservice:
+        image: nginx:latest
+        resources:
+          requests:
+            ephemeral-storage: "5Gi"
+          limits:
+            ephemeral-storage: "10Gi"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "5Gi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
+          value: "10Gi"
+  - it: should allow only setting requests or limits
+    set:
+      webservice:
+        image: nginx:latest
+        resources:
+          requests:
+            ephemeral-storage: "2Gi"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "2Gi"
+      - notExists:
+          path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
