@@ -8,3 +8,4 @@ helm-extra-args: --timeout 600s
 validate-maintainers: false
 check-version-increment: true
 validate-chart-schema: true
+helm-extra-set-args: --set=image.tag=latest
