@@ -1,0 +1,88 @@
+suite: network policy tests
+templates:
+  - networkpolicy.yaml
+tests:
+  - it: should create a NetworkPolicy when enabled
+    set:
+      webservice:
+        image: nginx:latest
+        port: 80
+      networkPolicy:
+        enabled: true
+    asserts:
+      - containsDocument:
+          kind: NetworkPolicy
+          apiVersion: networking.k8s.io/v1
+          name: "release-name-wik-webservice"
+      - equal:
+          path: spec.policyTypes
+          value:
+            - Ingress
+            - Egress
+      - equal:
+          path: spec.podSelector.matchLabels."app.kubernetes.io/name"
+          value: "wik-webservice"
+  - it: should not create a NetworkPolicy when disabled
+    set:
+      webservice:
+        image: nginx:latest
+      networkPolicy:
+        enabled: false
+    asserts:
+      - notContainsDocument:
+          kind: NetworkPolicy
+          apiVersion: networking.k8s.io/v1
+  - it: should use default ingress when not specified
+    set:
+      webservice:
+        image: nginx:latest
+        port: 8080
+      networkPolicy:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.ingress[0].from[0].namespaceSelector.matchLabels.name
+          value: "ingress-nginx"
+      - equal:
+          path: spec.ingress[0].ports[0].port
+          value: 8080
+  - it: should use custom ingress rules when specified
+    set:
+      webservice:
+        image: nginx:latest
+        port: 80
+      networkPolicy:
+        enabled: true
+        ingress:
+          - from:
+              - podSelector:
+                  matchLabels:
+                    app: frontend
+            ports:
+              - protocol: TCP
+                port: 80
+    asserts:
+      - equal:
+          path: spec.ingress[0].from[0].podSelector.matchLabels.app
+          value: "frontend"
+  - it: should use custom egress rules when specified
+    set:
+      webservice:
+        image: nginx:latest
+      networkPolicy:
+        enabled: true
+        egress:
+          - to:
+              - podSelector:
+                  matchLabels:
+                    app: database
+            ports:
+              - protocol: TCP
+                port: 5432
+    asserts:
+      - equal:
+          path: spec.egress[0].to[0].podSelector.matchLabels.app
+          value: "database"
+      - equal:
+          path: spec.egress[0].ports[0].port
+          value: 5432

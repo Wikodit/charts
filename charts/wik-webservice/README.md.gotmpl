@@ -127,6 +127,9 @@ serviceAccount:
 | `podDisruptionBudget.enabled` | Enable PodDisruptionBudget | `false` |
 | `podDisruptionBudget.minAvailable` | Minimum available pods | `1` |
 | `podDisruptionBudget.maxUnavailable` | Maximum unavailable pods | `""` |
+| `networkPolicy.enabled` | Enable NetworkPolicy | `false` |
+| `networkPolicy.ingress` | Custom ingress rules | `[]` |
+| `networkPolicy.egress` | Custom egress rules | `[]` |
 | `webservice.nodeSelector` | Node selector | `{}` |
 | `webservice.affinity` | Affinity rules | `{}` |
 | `webservice.strategy` | Deployment strategy | `{}` |
@@ -150,6 +153,40 @@ podDisruptionBudget:
 podDisruptionBudget:
   enabled: true
   minAvailable: "50%"
+```
+
+#### NetworkPolicy
+
+NetworkPolicy restricts network traffic to/from pods. By default, it allows traffic from the ingress-nginx namespace:
+
+```yaml
+# Enable with default rules (allow ingress traffic only)
+networkPolicy:
+  enabled: true
+
+# Custom ingress rules
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - protocol: TCP
+          port: 80
+
+# Restrict egress to specific services
+networkPolicy:
+  enabled: true
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: database
+      ports:
+        - protocol: TCP
+          port: 5432
 ```
 
 ### Additional Containers

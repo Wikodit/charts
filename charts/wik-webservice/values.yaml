@@ -26,6 +26,17 @@ podDisruptionBudget:
   # Maximum unavailable pods (mutually exclusive with minAvailable)
   # maxUnavailable: 1
 
+# NetworkPolicy configuration
+networkPolicy:
+  # Enable NetworkPolicy
+  enabled: false
+  # Annotations to add to the NetworkPolicy
+  annotations: {}
+  # Ingress rules (if not specified, allows traffic from ingress-nginx namespace)
+  ingress: []
+  # Egress rules (if not specified, allows all egress)
+  egress: []
+
 webservice:
   # Container image (required)
   image: "nginx:latest"
