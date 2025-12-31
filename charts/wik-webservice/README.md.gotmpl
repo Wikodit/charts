@@ -108,6 +108,70 @@ helm install my-app ./wik-webservice -f values.yaml
 | `webservice.initContainers` | Init containers | `[]` |
 | `webservice.additionalContainers` | Sidecar containers | `[]` |
 
+## Security & Resource Defaults
+
+This chart includes secure defaults that can be overridden as needed:
+
+### Security Context Defaults
+
+By default, pods run with the following security settings:
+
+```yaml
+# Pod Security Context
+securityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Container Security Context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+```
+
+To override these defaults, set `webservice.securityContext` or `webservice.containerSecurityContext`:
+
+```yaml
+webservice:
+  securityContext:
+    runAsUser: 2000
+    fsGroup: 2000
+  containerSecurityContext:
+    readOnlyRootFilesystem: false
+```
+
+### Resource Defaults
+
+If no resources are specified, the following defaults are applied:
+
+```yaml
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+```
+
+To customize resources:
+
+```yaml
+webservice:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+```
+
 ## Examples
 
 ### Basic deployment
