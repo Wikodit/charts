@@ -120,6 +120,48 @@ serviceAccount:
 | `webservice.storage` | PVC definitions | `{}` |
 | `webservice.volumes` | Volume mounts (PVC, ConfigMap, Secret) | `[]` |
 
+### Observability
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.metrics.enabled` | Enable metrics endpoint | `false` |
+| `webservice.metrics.port` | Metrics port | `9090` |
+| `webservice.metrics.path` | Metrics path | `/metrics` |
+| `serviceMonitor.enabled` | Enable ServiceMonitor | `false` |
+| `serviceMonitor.interval` | Scrape interval | `30s` |
+| `serviceMonitor.scrapeTimeout` | Scrape timeout | `10s` |
+| `serviceMonitor.honorLabels` | Honor labels | `false` |
+| `serviceMonitor.additionalLabels` | Additional labels | `{}` |
+
+#### Metrics and Monitoring
+
+The chart supports Prometheus metrics collection through ServiceMonitor:
+
+```yaml
+# Enable metrics endpoint
+webservice:
+  metrics:
+    enabled: true
+    port: 9090
+    path: /metrics
+
+# Enable ServiceMonitor for Prometheus
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  additionalLabels:
+    release: prometheus
+
+# Custom metric relabeling
+serviceMonitor:
+  enabled: true
+  metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'http_.*'
+      action: drop
+```
+
 ### Scheduling
 
 | Parameter | Description | Default |

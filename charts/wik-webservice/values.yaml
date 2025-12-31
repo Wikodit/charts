@@ -37,6 +37,25 @@ networkPolicy:
   # Egress rules (if not specified, allows all egress)
   egress: []
 
+# ServiceMonitor configuration for Prometheus
+serviceMonitor:
+  # Enable ServiceMonitor
+  enabled: false
+  # Additional labels for ServiceMonitor
+  additionalLabels: {}
+  # Annotations for ServiceMonitor
+  annotations: {}
+  # Scrape interval
+  interval: 30s
+  # Scrape timeout
+  scrapeTimeout: 10s
+  # Honor labels
+  honorLabels: false
+  # Metric relabelings
+  metricRelabelings: []
+  # Relabelings
+  relabelings: []
+
 webservice:
   # Container image (required)
   image: "nginx:latest"
