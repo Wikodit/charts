@@ -147,6 +147,40 @@ webservice:
 
 **Warning**: Enabling host access (hostNetwork, hostPID, hostIPC) significantly reduces isolation and should only be used when absolutely necessary.
 
+### Image Security
+
+For production deployments, follow these image security best practices:
+
+```yaml
+# Use specific image digests for immutability
+webservice:
+  image: "nginx@sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+  imagePullPolicy: IfNotPresent
+
+# Use private registry with authentication
+webservice:
+  image: "private-registry.com/myapp:v1.2.3"
+  imagePullAuth:
+    registry: "private-registry.com"
+    username: "deploy-user"
+    password: "secure-password"
+
+# Use SealedSecrets for encrypted credentials
+general:
+  sealedSecrets: true
+webservice:
+  imagePullAuth:
+    registry: "private-registry.com"
+    encrypted: "AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx..."
+```
+
+**Image Security Recommendations:**
+- Use specific image digests instead of tags for production
+- Prefer `imagePullPolicy: IfNotPresent` for pinned images
+- Store registry credentials in encrypted secrets
+- Regularly scan images for vulnerabilities
+- Use minimal base images to reduce attack surface
+
 ### Environment Variables
 
 | Parameter | Description | Default |
