@@ -20,7 +20,7 @@ on:
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: 'false'
 
 env:
   GHCR_REGISTRY: ghcr.io
@@ -154,6 +154,48 @@ jobs:
         run: |
           helm dependency update "${{ steps.chart-info.outputs.path }}" || true
 
+      - name: Generate CHANGELOG
+        run: |
+          # Install git-chglog
+          wget -O git-chglog.tar.gz https://github.com/git-chglog/git-chglog/releases/latest/download/git-chglog_linux_amd64.tar.gz
+          tar xzf git-chglog.tar.gz
+          sudo mv git-chglog /usr/local/bin/
+
+          # Generate changelog for this chart
+          CHANGELOG_PATH="${{ steps.chart-info.outputs.path }}/CHANGELOG.md"
+
+          # Get previous tag for this chart
+          PREV_TAG=$(git tag --list "${{ steps.chart-info.outputs.name }}-*" --sort=-version:refname | sed -n '2p' || echo "")
+
+          if [[ -f "$CHANGELOG_PATH" ]]; then
+            # Backup existing changelog
+            cp "$CHANGELOG_PATH" "$CHANGELOG_PATH.bak"
+          fi
+
+          # Generate new changelog entry
+          if [[ -n "$PREV_TAG" ]]; then
+            git-chglog --config .chglog/config.yml --output "$CHANGELOG_PATH" "$PREV_TAG..HEAD" --path "${{ steps.chart-info.outputs.path }}"
+          else
+            git-chglog --config .chglog/config.yml --output "$CHANGELOG_PATH" --path "${{ steps.chart-info.outputs.path }}"
+          fi
+
+          # If backup exists, prepend new entries to it
+          if [[ -f "$CHANGELOG_PATH.bak" ]]; then
+            echo "# Changelog" > temp_changelog
+            echo "" >> temp_changelog
+            cat "$CHANGELOG_PATH" >> temp_changelog
+            echo "" >> temp_changelog
+            tail -n +2 "$CHANGELOG_PATH.bak" >> temp_changelog
+            mv temp_changelog "$CHANGELOG_PATH"
+            rm "$CHANGELOG_PATH.bak"
+          else
+            # Add header if this is a new changelog
+            { echo "# Changelog"; echo ""; cat "$CHANGELOG_PATH"; } > temp_changelog
+            mv temp_changelog "$CHANGELOG_PATH"
+          fi
+
+          echo "Generated CHANGELOG for ${{ steps.chart-info.outputs.name }}"
+
       - name: Package chart
         run: |
           mkdir -p .packaged
@@ -278,6 +320,30 @@ jobs:
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit CHANGELOG
+        if: success()
+        run: |
+          # Configure git
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Add and commit CHANGELOG
+          git add "${{ steps.chart-info.outputs.path }}/CHANGELOG.md"
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: update CHANGELOG.md for ${{ steps.chart-info.outputs.name }} v${{ steps.chart-info.outputs.version }} [skip ci]"
+
+            # Pull latest changes to avoid conflicts
+            git pull --rebase origin main
+
+            # Push changes
+            echo "${{ secrets.GITHUB_TOKEN }}" | git push https://github-actions:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
+            echo "CHANGELOG committed and pushed"
+          fi
 
       - name: Summary
         run: |

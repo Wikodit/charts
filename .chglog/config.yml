@@ -1,0 +1,36 @@
+style: github
+template: |
+  ## {{ if .PreviousTag }}[{{ .Version }}]({{ .Info.RepositoryURL }}/compare/{{ .PreviousTag }}...{{ .Version }}){{ else }}{{ .Version }}{{ end }} - {{ .Info.Date.Format "2006-01-02" }}
+
+  {{ range .Commits -}}
+  {{- if or (contains .Commit.Header "feat") (contains .Commit.Header "fix") (contains .Commit.Header "docs") }}
+  {{- if or (contains .Commit.Header "refactor") (contains .Commit.Header "perf") (contains .Commit.Header "test") }}
+  {{- if or (contains .Commit.Header "build") (contains .Commit.Header "ci") (contains .Commit.Header "chore") }}
+  * {{ if .Scope }}**{{ .Scope }}:** {{ end }}{{ .Subject }}
+  {{ end -}}{{ end -}}{{ end -}}
+  {{ end }}
+
+info:
+  title: CHANGELOG
+  repository_url: https://github.com/wikodit/charts
+options:
+  commit_filters:
+    Type:
+      - feat
+      - fix
+      - docs
+      - refactor
+      - perf
+      - test
+      - build
+      - ci
+      - chore
+  header:
+    pattern: "^(\\w*)(?:\\(([\\w\\$\\.\\-\\*\\s]*)\\))?!?: (.*)$"
+    maps:
+      - Type: 1
+      - Scope: 2
+      - Subject: 3
+  notes:
+    keywords:
+      - BREAKING CHANGE
