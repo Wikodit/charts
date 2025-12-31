@@ -179,8 +179,14 @@ jobs:
           COSIGN_EXPERIMENTAL: "true"
 
       - name: Sign chart in GHCR (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
         run: |
           IMAGE="${{ env.GHCR_REGISTRY }}/${{ env.GHCR_REPO }}/${{ steps.chart-info.outputs.name }}:${{ steps.chart-info.outputs.version }}"
+
+          # Authenticate with GHCR for Cosign
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ${{ env.GHCR_REGISTRY }} \
+            -u ${{ github.actor }} --password-stdin
 
           cosign sign --yes "${IMAGE}"
           echo "Signed ${IMAGE}"
@@ -202,8 +208,14 @@ jobs:
 
       - name: Sign chart in Harbor (keyless)
         if: vars.HARBOR_REGISTRY != ''
+        env:
+          COSIGN_EXPERIMENTAL: "1"
         run: |
           IMAGE="${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT || 'library' }}/${{ steps.chart-info.outputs.name }}:${{ steps.chart-info.outputs.version }}"
+
+          # Authenticate with Harbor for Cosign
+          echo "${{ secrets.HARBOR_PASSWORD }}" | cosign login ${{ vars.HARBOR_REGISTRY }} \
+            -u ${{ secrets.HARBOR_USERNAME }} --password-stdin
 
           cosign sign --yes "${IMAGE}"
           echo "Signed ${IMAGE}"
