@@ -190,6 +190,9 @@ webservice:
     # runAsGroup: 1000
     # fsGroup: 1000
 
+  # Enable service links (injects all services as environment variables)
+  enableServiceLinks: false
+
   # Container-level security context
   containerSecurityContext: {}
     # allowPrivilegeEscalation: false

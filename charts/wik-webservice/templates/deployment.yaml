@@ -42,6 +42,7 @@ spec:
       serviceAccountName: {{ include "serviceAccountName" . }}
 {{ end }}
       automountServiceAccountToken: false
+      enableServiceLinks: {{ .Values.webservice.enableServiceLinks }}
 {{ if .Values.webservice.hostAliases }}
       hostAliases:
 {{ .Values.webservice.hostAliases | toYaml | indent 8 }}

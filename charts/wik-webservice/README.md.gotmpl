@@ -83,6 +83,7 @@ helm install my-app ./wik-webservice -f values.yaml
 | `serviceAccount.automountServiceAccountToken` | Mount service account token (when creating SA) | `true` |
 | `webservice.securityContext` | Pod-level security context | `{}` |
 | `webservice.containerSecurityContext` | Container-level security context | `{}` |
+| `webservice.enableServiceLinks` | Enable service links injection | `false` |
 
 #### ServiceAccount Configuration
 
@@ -108,6 +109,20 @@ serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/my-role"
   automountServiceAccountToken: true
+```
+
+#### Service Links
+
+Service links inject all cluster services as environment variables in the pod. This is disabled by default for security to reduce information leakage.
+
+```yaml
+# Default (service links disabled)
+webservice:
+  enableServiceLinks: false
+
+# Enable service links if needed
+webservice:
+  enableServiceLinks: true
 ```
 
 ### Environment Variables

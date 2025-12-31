@@ -1,0 +1,30 @@
+suite: enable service links tests
+templates:
+  - deployment.yaml
+tests:
+  - it: should set enableServiceLinks to false by default
+    set:
+      webservice:
+        image: nginx:latest
+    asserts:
+      - equal:
+          path: spec.template.spec.enableServiceLinks
+          value: false
+  - it: should allow enabling service links when set to true
+    set:
+      webservice:
+        image: nginx:latest
+        enableServiceLinks: true
+    asserts:
+      - equal:
+          path: spec.template.spec.enableServiceLinks
+          value: true
+  - it: should allow disabling service links explicitly
+    set:
+      webservice:
+        image: nginx:latest
+        enableServiceLinks: false
+    asserts:
+      - equal:
+          path: spec.template.spec.enableServiceLinks
+          value: false
