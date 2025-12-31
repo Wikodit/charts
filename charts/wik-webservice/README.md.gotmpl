@@ -132,6 +132,11 @@ serviceAccount:
 | `serviceMonitor.scrapeTimeout` | Scrape timeout | `10s` |
 | `serviceMonitor.honorLabels` | Honor labels | `false` |
 | `serviceMonitor.additionalLabels` | Additional labels | `{}` |
+| `horizontalPodAutoscaler.enabled` | Enable HPA | `false` |
+| `horizontalPodAutoscaler.minReplicas` | Minimum replicas | `1` |
+| `horizontalPodAutoscaler.maxReplicas` | Maximum replicas | `5` |
+| `horizontalPodAutoscaler.targetCPUUtilizationPercentage` | CPU target | `80` |
+| `horizontalPodAutoscaler.targetMemoryUtilizationPercentage` | Memory target | `null` |
 
 #### Metrics and Monitoring
 
@@ -160,6 +165,44 @@ serviceMonitor:
     - sourceLabels: [__name__]
       regex: 'http_.*'
       action: drop
+```
+
+#### Horizontal Pod Autoscaling
+
+The chart supports automatic scaling based on CPU and memory usage:
+
+```yaml
+# Enable HPA with CPU target
+horizontalPodAutoscaler:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+# Enable HPA with both CPU and memory targets
+horizontalPodAutoscaler:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 70
+
+# Custom scaling behavior
+horizontalPodAutoscaler:
+  enabled: true
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
 ```
 
 ### Scheduling
