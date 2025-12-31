@@ -77,22 +77,25 @@ helm install my-app ./wik-webservice -f values.yaml
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `serviceAccount.create` | Create a dedicated ServiceAccount | `true` |
-| `serviceAccount.name` | ServiceAccount name to use | `""` (generated) |
+| `serviceAccount.create` | Create a dedicated ServiceAccount | `false` |
+| `serviceAccount.name` | ServiceAccount name to use | `""` (default) |
 | `serviceAccount.annotations` | ServiceAccount annotations | `{}` |
-| `serviceAccount.automountServiceAccountToken` | Mount service account token | `false` |
+| `serviceAccount.automountServiceAccountToken` | Mount service account token (when creating SA) | `true` |
 | `webservice.securityContext` | Pod-level security context | `{}` |
 | `webservice.containerSecurityContext` | Container-level security context | `{}` |
 
 #### ServiceAccount Configuration
 
-By default, a dedicated ServiceAccount is created with `automountServiceAccountToken: false` for security. This prevents the token from being mounted in the pod unless explicitly needed.
+By default, pods use the default ServiceAccount with `automountServiceAccountToken: false` for security. This prevents the token from being mounted in the pod unless explicitly needed.
 
 ```yaml
-# Use default ServiceAccount (no token mounted)
+# Default behavior (no token mounted)
+# Uses default ServiceAccount, token is not mounted
+
+# Create dedicated ServiceAccount with token
 serviceAccount:
   create: true
-  automountServiceAccountToken: false
+  automountServiceAccountToken: true
 
 # Use existing ServiceAccount
 serviceAccount:
