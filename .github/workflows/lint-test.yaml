@@ -94,11 +94,10 @@ jobs:
           failed=0
           for chart in charts/*/; do
             if [[ -d "${chart}tests" ]]; then
-              echo "::group::Testing ${chart}"
+              echo "Testing ${chart}"
               if ! helm unittest "${chart}"; then
                 failed=1
               fi
-              echo "::endgroup::"
             fi
           done
           exit $failed
@@ -126,7 +125,7 @@ jobs:
           failed=0
           for chart in charts/*/; do
             chart_name=$(basename "$chart")
-            echo "::group::Validating ${chart_name}"
+            echo "Validating ${chart_name}"
 
             # Use ci values if available, otherwise default
             values_file=""

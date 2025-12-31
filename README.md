@@ -1,7 +1,8 @@
 # Wikodit Helm Charts
 
-[![CI](https://github.com/wikodit/wik-ops/actions/workflows/charts-ci.yml/badge.svg)](https://github.com/wikodit/wik-ops/actions/workflows/charts-ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Lint and Test](https://github.com/wikodit/charts/actions/workflows/lint-test.yaml/badge.svg)](https://github.com/wikodit/charts/actions/workflows/lint-test.yaml)
+[![Release](https://github.com/wikodit/charts/actions/workflows/release.yaml/badge.svg)](https://github.com/wikodit/charts/actions/workflows/release.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A collection of Helm charts maintained by Wikodit for Kubernetes deployments.
 

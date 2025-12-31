@@ -1,0 +1,276 @@
+name: Release Charts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+  workflow_dispatch:
+    inputs:
+      chart:
+        description: 'Chart to release (e.g., wik-webservice). Leave empty for auto-detect.'
+        required: false
+        type: string
+      force:
+        description: 'Force release even if version exists'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GHCR_REGISTRY: ghcr.io
+  GHCR_REPO: wikodit/charts
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_changes: ${{ steps.set-matrix.outputs.has_changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.7.0
+
+      - name: Detect charts to release
+        id: set-matrix
+        run: |
+          if [[ -n "${{ inputs.chart }}" ]]; then
+            # Manual trigger with specific chart
+            CHARTS='["${{ inputs.chart }}"]'
+          else
+            # Auto-detect using chart-testing
+            changed=$(ct list-changed --config ct.yaml --target-branch ${{ github.event.before || 'HEAD~1' }} 2>/dev/null || echo "")
+            if [[ -z "$changed" ]]; then
+              # Fallback: check git diff
+              changed=$(git diff --name-only HEAD~1 HEAD -- charts/ 2>/dev/null | grep -oP 'charts/\K[^/]+' | sort -u || echo "")
+            fi
+
+            if [[ -n "$changed" ]]; then
+              CHARTS=$(echo "$changed" | jq -R -s -c 'split("\n") | map(select(. != "" and (startswith("charts/") | not)))')
+            else
+              CHARTS='[]'
+            fi
+          fi
+
+          echo "Detected charts: $CHARTS"
+
+          if [[ "$CHARTS" == "[]" ]]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"chart\":[]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"chart\":$CHARTS}" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    permissions:
+      contents: write
+      packages: write
+      id-token: write  # Required for cosign keyless signing
+    strategy:
+      fail-fast: false
+      max-parallel: 1  # Serialize releases to avoid conflicts
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Install yq
+        uses: mikefarah/yq@v4
+
+      - name: Get chart info
+        id: chart-info
+        run: |
+          CHART_PATH="charts/${{ matrix.chart }}"
+          if [[ ! -f "${CHART_PATH}/Chart.yaml" ]]; then
+            echo "::error::Chart.yaml not found at ${CHART_PATH}"
+            exit 1
+          fi
+
+          VERSION=$(yq '.version' "${CHART_PATH}/Chart.yaml")
+          NAME=$(yq '.name' "${CHART_PATH}/Chart.yaml")
+          APP_VERSION=$(yq '.appVersion // "unknown"' "${CHART_PATH}/Chart.yaml")
+
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "path=${CHART_PATH}" >> "$GITHUB_OUTPUT"
+          echo "tag=${NAME}-v${VERSION}" >> "$GITHUB_OUTPUT"
+
+          echo "Chart: ${NAME}"
+          echo "Version: ${VERSION}"
+          echo "App Version: ${APP_VERSION}"
+
+      - name: Check if version already released
+        id: check-version
+        run: |
+          TAG="${{ steps.chart-info.outputs.tag }}"
+
+          if git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
+            if [[ "${{ inputs.force }}" == "true" ]]; then
+              echo "WARNING: Tag ${TAG} exists but force=true, continuing..."
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "::error::Tag ${TAG} already exists. Bump the version in Chart.yaml or use force=true."
+              exit 1
+            fi
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update dependencies
+        run: |
+          helm dependency update "${{ steps.chart-info.outputs.path }}" || true
+
+      - name: Package chart
+        run: |
+          mkdir -p .packaged
+          helm package "${{ steps.chart-info.outputs.path }}" -d .packaged/
+          echo "Packaged: .packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz"
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.GHCR_REGISTRY }} \
+            -u ${{ github.actor }} --password-stdin
+
+      - name: Push to GHCR
+        id: push-ghcr
+        run: |
+          PACKAGE=".packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz"
+          helm push "${PACKAGE}" oci://${{ env.GHCR_REGISTRY }}/${{ env.GHCR_REPO }}
+
+          # Get the digest
+          DIGEST=$(crane digest ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_REPO }}/${{ steps.chart-info.outputs.name }}:${{ steps.chart-info.outputs.version }} 2>/dev/null || echo "")
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "Pushed to GHCR"
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+
+      - name: Sign chart in GHCR (keyless)
+        run: |
+          IMAGE="${{ env.GHCR_REGISTRY }}/${{ env.GHCR_REPO }}/${{ steps.chart-info.outputs.name }}:${{ steps.chart-info.outputs.version }}"
+
+          cosign sign --yes "${IMAGE}"
+          echo "Signed ${IMAGE}"
+
+      - name: Login to Harbor
+        if: vars.HARBOR_REGISTRY != ''
+        run: |
+          echo "${{ secrets.HARBOR_PASSWORD }}" | helm registry login ${{ vars.HARBOR_REGISTRY }} \
+            -u ${{ secrets.HARBOR_USERNAME }} --password-stdin
+
+      - name: Push to Harbor
+        if: vars.HARBOR_REGISTRY != ''
+        run: |
+          PACKAGE=".packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz"
+          HARBOR_REPO="${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT || 'library' }}"
+
+          helm push "${PACKAGE}" oci://${HARBOR_REPO}
+          echo "Pushed to Harbor"
+
+      - name: Sign chart in Harbor (keyless)
+        if: vars.HARBOR_REGISTRY != ''
+        run: |
+          IMAGE="${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT || 'library' }}/${{ steps.chart-info.outputs.name }}:${{ steps.chart-info.outputs.version }}"
+
+          cosign sign --yes "${IMAGE}"
+          echo "Signed ${IMAGE}"
+
+      - name: Generate SBOM
+        run: |
+          # Generate SBOM for the chart
+          PACKAGE=".packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz"
+
+          # Create a simple SBOM (for more comprehensive SBOM, use syft)
+          cat > ".packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.sbom.json" <<EOF
+          {
+            "bomFormat": "CycloneDX",
+            "specVersion": "1.4",
+            "version": 1,
+            "metadata": {
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+              "component": {
+                "type": "application",
+                "name": "${{ steps.chart-info.outputs.name }}",
+                "version": "${{ steps.chart-info.outputs.version }}",
+                "purl": "pkg:helm/${{ env.GHCR_REPO }}/${{ steps.chart-info.outputs.name }}@${{ steps.chart-info.outputs.version }}"
+              }
+            },
+            "components": []
+          }
+          EOF
+          echo "Generated SBOM"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.chart-info.outputs.tag }}
+          name: "${{ steps.chart-info.outputs.name }} v${{ steps.chart-info.outputs.version }}"
+          body: |
+            ## Helm Chart Release
+
+            **Chart**: `${{ steps.chart-info.outputs.name }}`
+            **Version**: `${{ steps.chart-info.outputs.version }}`
+            **App Version**: `${{ steps.chart-info.outputs.app_version }}`
+
+            ### Installation
+
+            ```bash
+            # From GHCR (OCI)
+            helm install ${{ steps.chart-info.outputs.name }} oci://${{ env.GHCR_REGISTRY }}/${{ env.GHCR_REPO }}/${{ steps.chart-info.outputs.name }} --version ${{ steps.chart-info.outputs.version }}
+            ```
+
+            ### Signature Verification
+
+            ```bash
+            cosign verify ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_REPO }}/${{ steps.chart-info.outputs.name }}:${{ steps.chart-info.outputs.version }} \
+              --certificate-identity-regexp='https://github.com/${{ github.repository }}' \
+              --certificate-oidc-issuer='https://token.actions.githubusercontent.com'
+            ```
+          files: |
+            .packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz
+            .packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.sbom.json
+          generate_release_notes: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Release Summary
+
+          | Property | Value |
+          |----------|-------|
+          | Chart | \`${{ steps.chart-info.outputs.name }}\` |
+          | Version | \`${{ steps.chart-info.outputs.version }}\` |
+          | GHCR | \`${{ env.GHCR_REGISTRY }}/${{ env.GHCR_REPO }}/${{ steps.chart-info.outputs.name }}:${{ steps.chart-info.outputs.version }}\` |
+          | GitHub Release | [${{ steps.chart-info.outputs.tag }}](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.chart-info.outputs.tag }}) |
+          | Signed | Keyless (Sigstore) |
+          EOF
