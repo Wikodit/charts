@@ -71,6 +71,7 @@ helm install my-app ./wik-webservice -f values.yaml
 | `webservice.resources` | CPU/Memory requests and limits | `{}` |
 | `webservice.livenessProbe` | Liveness probe configuration | `{}` |
 | `webservice.readinessProbe` | Readiness probe configuration | `{}` |
+| `webservice.startupProbe` | Startup probe configuration | `{}` |
 
 ### Security
 
@@ -420,6 +421,13 @@ webservice:
     httpGet:
       path: /ready
       port: 80
+  startupProbe:
+    httpGet:
+      path: /startup
+      port: 80
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 30
 ```
 
 ### With metrics enabled

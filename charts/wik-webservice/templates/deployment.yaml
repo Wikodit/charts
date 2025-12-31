@@ -123,6 +123,10 @@ spec:
           readinessProbe:
 {{ .Values.webservice.readinessProbe | toYaml | indent 12 }}
 {{ end }}
+{{ if .Values.webservice.startupProbe }}
+          startupProbe:
+{{ .Values.webservice.startupProbe | toYaml | indent 12 }}
+{{ end }}
 {{ if .Values.webservice.volumes }}
           volumeMounts:
 {{ range .Values.webservice.volumes }}

@@ -241,6 +241,16 @@ webservice:
     # initialDelaySeconds: 5
     # periodSeconds: 5
 
+  startupProbe: {}
+    # httpGet:
+    #   path: /startup
+    #   port: 80
+    # initialDelaySeconds: 10
+    # periodSeconds: 10
+    # timeoutSeconds: 5
+    # failureThreshold: 30
+    # successThreshold: 1
+
   # Environment variables
   env:
     plaintext: {}
