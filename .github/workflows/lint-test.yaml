@@ -35,7 +35,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.3
+          version: v3.19.4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -79,7 +79,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.3
+          version: v3.19.4
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.7.0
@@ -107,18 +107,9 @@ jobs:
 
           echo "matrix={\"chart\":$CHARTS}" >> "$GITHUB_OUTPUT"
 
-      - name: Cache Helm plugins
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/share/helm/plugins
-          key: helm-plugins-${{ runner.os }}-${{ hashFiles('**/lint-test.yaml') }}
-
       - name: Install helm-unittest plugin
         run: |
-          helm plugin uninstall unittest || true
-          if ! helm plugin list | grep -q unittest; then
-            helm plugin install https://github.com/helm-unittest/helm-unittest.git
-          fi
+          helm plugin install https://github.com/helm-unittest/helm-unittest.git
 
       - name: Run unit tests
         run: |
@@ -144,7 +135,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.3
+          version: v3.19.4
 
       - name: Install kubeconform
         run: |
@@ -207,7 +198,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.3
+          version: v3.19.4
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.7.0
