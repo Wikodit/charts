@@ -15,6 +15,17 @@ serviceAccount:
   # AutomountServiceAccountToken controls whether the service account token is automatically mounted
   automountServiceAccountToken: false
 
+# PodDisruptionBudget configuration
+podDisruptionBudget:
+  # Enable PodDisruptionBudget
+  enabled: false
+  # Annotations to add to the PodDisruptionBudget
+  annotations: {}
+  # Minimum available pods (mutually exclusive with maxUnavailable)
+  minAvailable: 1
+  # Maximum unavailable pods (mutually exclusive with minAvailable)
+  # maxUnavailable: 1
+
 webservice:
   # Container image (required)
   image: "nginx:latest"

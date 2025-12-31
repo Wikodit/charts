@@ -124,9 +124,33 @@ serviceAccount:
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
+| `podDisruptionBudget.enabled` | Enable PodDisruptionBudget | `false` |
+| `podDisruptionBudget.minAvailable` | Minimum available pods | `1` |
+| `podDisruptionBudget.maxUnavailable` | Maximum unavailable pods | `""` |
 | `webservice.nodeSelector` | Node selector | `{}` |
 | `webservice.affinity` | Affinity rules | `{}` |
 | `webservice.strategy` | Deployment strategy | `{}` |
+
+#### PodDisruptionBudget
+
+PodDisruptionBudget ensures application availability during voluntary disruptions (node maintenance, cluster upgrades):
+
+```yaml
+# Ensure at least 1 pod is always available
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Allow at most 1 pod to be unavailable (good for multi-replica deployments)
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+# Percentage-based availability
+podDisruptionBudget:
+  enabled: true
+  minAvailable: "50%"
+```
 
 ### Additional Containers
 
