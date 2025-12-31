@@ -54,14 +54,20 @@ jobs:
             CHARTS='["${{ inputs.chart }}"]'
           else
             # Auto-detect using chart-testing
-            changed=$(ct list-changed --config ct.yaml --target-branch ${{ github.event.before || 'HEAD~1' }} 2>/dev/null || echo "")
+            # Use main as target branch for push events
+            TARGET_BRANCH="main"
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              TARGET_BRANCH="${{ github.base_ref }}"
+            fi
+
+            changed=$(ct list-changed --config ct.yaml --target-branch $TARGET_BRANCH 2>/dev/null || echo "")
             if [[ -z "$changed" ]]; then
               # Fallback: check git diff
-              changed=$(git diff --name-only HEAD~1 HEAD -- charts/ 2>/dev/null | grep -oP 'charts/\K[^/]+' | sort -u || echo "")
+              changed=$(git diff --name-only origin/$TARGET_BRANCH HEAD -- charts/ 2>/dev/null | grep -oP 'charts/\K[^/]+' | sort -u || echo "")
             fi
 
             if [[ -n "$changed" ]]; then
-              CHARTS=$(echo "$changed" | jq -R -s -c 'split("\n") | map(select(. != "" and (startswith("charts/") | not)))')
+              CHARTS=$(echo "$changed" | jq -R -s -c 'split("\n") | map(select(. != ""))')
             else
               CHARTS='[]'
             fi
