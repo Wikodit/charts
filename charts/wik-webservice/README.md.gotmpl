@@ -76,8 +76,35 @@ helm install my-app ./wik-webservice -f values.yaml
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
+| `serviceAccount.create` | Create a dedicated ServiceAccount | `true` |
+| `serviceAccount.name` | ServiceAccount name to use | `""` (generated) |
+| `serviceAccount.annotations` | ServiceAccount annotations | `{}` |
+| `serviceAccount.automountServiceAccountToken` | Mount service account token | `false` |
 | `webservice.securityContext` | Pod-level security context | `{}` |
 | `webservice.containerSecurityContext` | Container-level security context | `{}` |
+
+#### ServiceAccount Configuration
+
+By default, a dedicated ServiceAccount is created with `automountServiceAccountToken: false` for security. This prevents the token from being mounted in the pod unless explicitly needed.
+
+```yaml
+# Use default ServiceAccount (no token mounted)
+serviceAccount:
+  create: true
+  automountServiceAccountToken: false
+
+# Use existing ServiceAccount
+serviceAccount:
+  create: false
+  name: "existing-sa"
+
+# Create ServiceAccount with IAM role (EKS example)
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/my-role"
+  automountServiceAccountToken: true
+```
 
 ### Environment Variables
 
