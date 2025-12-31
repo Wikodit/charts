@@ -98,7 +98,16 @@ spec:
 {{ end }}
 
           resources:
+{{- if .Values.webservice.resources }}
 {{ .Values.webservice.resources | toYaml | indent 12 }}
+{{- else }}
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+{{- end }}
 {{ if .Values.webservice.livenessProbe }}
           livenessProbe:
 {{ .Values.webservice.livenessProbe | toYaml | indent 12 }}
