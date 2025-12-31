@@ -1,5 +1,8 @@
 # wik-webservice
 
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square)
+![Chart](https://img.shields.io/badge/Chart-wik--webservice-blue?style=flat-square)
+
 ## Introduction
 
 This chart simplifies the deployment of a webservice on Kubernetes.
@@ -163,26 +166,26 @@ webservice:
   image: myapp:latest
   hosts:
     - app.example.com
- 
+
   # Define persistent storage
   storage:
     data:
       size: 10Gi
       storageClass: standard
- 
+
   # Mount volumes
   volumes:
     # Mount PVC
     - name: data
       mountPath: /app/data
       storage: true
-   
+
     # Mount ConfigMap
     - name: config
       mountPath: /app/config
       configMap:
         name: app-config
-   
+
     # Mount Secret file
     - name: credentials
       mountPath: /app/credentials.json
@@ -210,13 +213,13 @@ webservice:
   image: myapp:latest
   hosts:
     - app.example.com
- 
+
   initContainers:
     - name: init-db
       container:
         image: busybox
         command: ["sh", "-c", "echo waiting for db..."]
- 
+
   additionalContainers:
     - name: log-shipper
       container:

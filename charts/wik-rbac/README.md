@@ -1,5 +1,8 @@
 # wik-rbac
 
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square)
+![Chart](https://img.shields.io/badge/Chart-wik--rbac-blue?style=flat-square)
+
 Install rbac-manager and deal with users, roles and namespaces
 
 ## Introduction

@@ -1,5 +1,8 @@
 # wik-node-local-dns
 
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square)
+![Chart](https://img.shields.io/badge/Chart-wik--node--local--dns-blue?style=flat-square)
+
 node-local-dns for ovh cluster
 
 ## Introduction
