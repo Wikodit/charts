@@ -159,7 +159,7 @@ spec:
 
 {{ if .Values.webservice.imagePullAuth }}
       imagePullSecrets:
-        - name: {{ template "fullname" . }}-docker
+        - name: {{ template "fullname" . }}-registry
 {{ end }}
 
 {{ if .Values.webservice.volumes }}
