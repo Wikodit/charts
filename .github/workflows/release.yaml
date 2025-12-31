@@ -98,6 +98,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -109,6 +112,89 @@ jobs:
 
       - name: Install yq
         uses: mikefarah/yq@v4
+
+      - name: Determine version bump from conventional commits
+        id: version-bump
+        run: |
+          CHART_PATH="charts/${{ matrix.chart }}"
+          CHART_NAME=$(yq '.name' "${CHART_PATH}/Chart.yaml")
+
+          # Get the last release tag for this chart
+          LAST_TAG=$(git tag --list "${CHART_NAME}-v*" --sort=-version:refname | head -n1 || echo "")
+
+          if [[ -z "$LAST_TAG" ]]; then
+            # No previous release, get all commits for this chart
+            echo "No previous release found for ${CHART_NAME}"
+            COMMITS=$(git log --oneline --no-merges -- "${CHART_PATH}")
+            CURRENT_VERSION="0.0.0"
+          else
+            echo "Last release: ${LAST_TAG}"
+            COMMITS=$(git log --oneline --no-merges "${LAST_TAG}..HEAD" -- "${CHART_PATH}")
+            # Extract version from tag (chart-name-vX.Y.Z -> X.Y.Z)
+            CURRENT_VERSION=$(echo "$LAST_TAG" | sed "s/${CHART_NAME}-v//")
+          fi
+
+          echo "Current version: ${CURRENT_VERSION}"
+          echo "Commits since last release:"
+          echo "$COMMITS"
+
+          # Determine bump type from conventional commits
+          BUMP_TYPE="none"
+
+          # Check for breaking changes (BREAKING CHANGE in body or ! after type)
+          if echo "$COMMITS" | grep -qiE '(BREAKING CHANGE|^[a-z]+!:|!)'; then
+            BUMP_TYPE="major"
+          # Check for features
+          elif echo "$COMMITS" | grep -qiE '^[a-f0-9]+ feat'; then
+            BUMP_TYPE="minor"
+          # Check for fixes or any other changes
+          elif echo "$COMMITS" | grep -qiE '^[a-f0-9]+ (fix|perf|refactor|docs|style|test|chore|ci|build)'; then
+            BUMP_TYPE="patch"
+          elif [[ -n "$COMMITS" ]]; then
+            # Any other commits default to patch
+            BUMP_TYPE="patch"
+          fi
+
+          echo "Bump type: ${BUMP_TYPE}"
+
+          if [[ "$BUMP_TYPE" == "none" ]]; then
+            echo "::error::No commits found since last release. Nothing to bump."
+            exit 1
+          fi
+
+          # Calculate new version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          case "$BUMP_TYPE" in
+            major)
+              NEW_VERSION="$((MAJOR + 1)).0.0"
+              ;;
+            minor)
+              NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
+              ;;
+            patch)
+              NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+              ;;
+          esac
+
+          echo "New version: ${NEW_VERSION}"
+
+          echo "bump_type=${BUMP_TYPE}" >> "$GITHUB_OUTPUT"
+          echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "new_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Update Chart.yaml version
+        id: update-version
+        run: |
+          CHART_PATH="charts/${{ matrix.chart }}"
+          NEW_VERSION="${{ steps.version-bump.outputs.new_version }}"
+
+          # Update version and appVersion in Chart.yaml
+          yq -i ".version = \"${NEW_VERSION}\"" "${CHART_PATH}/Chart.yaml"
+          yq -i ".appVersion = \"${NEW_VERSION}\"" "${CHART_PATH}/Chart.yaml"
+
+          echo "Updated Chart.yaml to version ${NEW_VERSION}"
+          cat "${CHART_PATH}/Chart.yaml"
 
       - name: Get chart info
         id: chart-info
@@ -328,21 +414,24 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          # Add and commit CHANGELOG
+          # Add Chart.yaml (version bump) and CHANGELOG
+          git add "${{ steps.chart-info.outputs.path }}/Chart.yaml"
           git add "${{ steps.chart-info.outputs.path }}/CHANGELOG.md"
 
           # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "docs: update CHANGELOG.md for ${{ steps.chart-info.outputs.name }} v${{ steps.chart-info.outputs.version }} [skip ci]"
+            git commit -m "chore(${{ steps.chart-info.outputs.name }}): release v${{ steps.chart-info.outputs.version }} [skip ci]" \
+              -m "Bump version from ${{ steps.version-bump.outputs.current_version }} to ${{ steps.version-bump.outputs.new_version }}" \
+              -m "Update CHANGELOG.md"
 
             # Pull latest changes to avoid conflicts
             git pull --rebase origin main
 
             # Push changes
-            echo "${{ secrets.GITHUB_TOKEN }}" | git push https://github-actions:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
-            echo "CHANGELOG committed and pushed"
+            git push https://github-actions:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
+            echo "Version bump and CHANGELOG committed and pushed"
           fi
 
       - name: Summary
@@ -353,7 +442,9 @@ jobs:
           | Property | Value |
           |----------|-------|
           | Chart | \`${{ steps.chart-info.outputs.name }}\` |
-          | Version | \`${{ steps.chart-info.outputs.version }}\` |
+          | Previous Version | \`${{ steps.version-bump.outputs.current_version }}\` |
+          | New Version | \`${{ steps.chart-info.outputs.version }}\` |
+          | Bump Type | \`${{ steps.version-bump.outputs.bump_type }}\` |
           | GHCR | \`${{ env.GHCR_REGISTRY }}/${{ env.GHCR_REPO }}/${{ steps.chart-info.outputs.name }}:${{ steps.chart-info.outputs.version }}\` |
           | GitHub Release | [${{ steps.chart-info.outputs.tag }}](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.chart-info.outputs.tag }}) |
           | Signed | Keyless (Sigstore) |
