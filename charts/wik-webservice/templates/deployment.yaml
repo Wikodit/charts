@@ -75,6 +75,8 @@ spec:
             capabilities:
               drop:
                 - ALL
+            seccompProfile:
+              type: RuntimeDefault
 {{- end }}
           imagePullPolicy: {{ .Values.webservice.imagePullPolicy }}
           ports:

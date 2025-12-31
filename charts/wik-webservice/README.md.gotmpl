@@ -348,7 +348,8 @@ securityContext:
   capabilities:
     drop:
       - ALL
-```
+  seccompProfile:
+    type: RuntimeDefault
 
 To override these defaults, set `webservice.securityContext` or `webservice.containerSecurityContext`:
 
@@ -359,6 +360,9 @@ webservice:
     fsGroup: 2000
   containerSecurityContext:
     readOnlyRootFilesystem: false
+    seccompProfile:
+      type: Localhost
+      localhostProfile: "profiles/custom.json"
 ```
 
 ### Resource Defaults
