@@ -294,19 +294,18 @@ webservice:
     #             values:
     #               - eu-west-1a
 
-  # Persistent storage (creates PVC)
-  storage: {}
-    # Example: creates a PVC named <release>-data
-    # data:
-    #   size: 10Gi
-    #   storageClass: standard
-
   # Volume mounts (supports PVC, ConfigMap, Secret)
   volumes: []
-    # Mount from PVC (requires matching entry in storage)
+    # Mount from PVC (storage contains the PVC spec)
     # - name: data
     #   mountPath: /app/data
-    #   storage: true
+    #   storage:
+    #     accessModes:
+    #       - ReadWriteOnce
+    #     resources:
+    #       requests:
+    #         storage: 10Gi
+    #     storageClassName: standard
     #
     # Mount from ConfigMap
     # - name: config
