@@ -38,10 +38,14 @@ spec:
       hostAliases:
 {{ .Values.webservice.hostAliases | toYaml | indent 8 }}
 {{ end }}
-{{ if .Values.webservice.securityContext }}
       securityContext:
+{{- if .Values.webservice.securityContext }}
 {{ .Values.webservice.securityContext | toYaml | indent 8 }}
-{{ end }}
+{{- else }}
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+{{- end }}
 {{ if .Values.webservice.dnsConfig }}
       dnsConfig:
 {{ .Values.webservice.dnsConfig | toYaml | indent 8 }}
