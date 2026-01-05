@@ -13,3 +13,6 @@ webservice:
     - name: nginx-run
       mountPath: /var/run
       emptyDir: {}
+    - name: nginx-tmp
+      mountPath: /tmp
+      emptyDir: {}

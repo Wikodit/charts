@@ -94,3 +94,14 @@ webservice:
           requests:
             storage: 10Gi
         storageClassName: standard
+
+    # nginx needs writable dirs when using readOnlyRootFilesystem
+    - name: nginx-cache
+      mountPath: /var/cache/nginx
+      emptyDir: {}
+    - name: nginx-run
+      mountPath: /var/run
+      emptyDir: {}
+    - name: nginx-tmp
+      mountPath: /tmp
+      emptyDir: {}
