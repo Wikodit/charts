@@ -2,10 +2,10 @@ general:
   sealedSecrets: false
 
 webservice:
-  image: nginx:latest
+  image: nginxinc/nginx-unprivileged:latest
   imagePullPolicy: Always
   replicas: 2
-  port: 80
+  port: 8080
   hosts:
     - test.example.com
     - api.example.com
