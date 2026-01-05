@@ -3,6 +3,88 @@ general:
   # instead of Secret with plaintext value
   sealedSecrets: false
 
+# ServiceAccount configuration
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+  # AutomountServiceAccountToken controls whether the service account token is automatically mounted
+  automountServiceAccountToken: true
+
+# PodDisruptionBudget configuration
+podDisruptionBudget:
+  # Enable PodDisruptionBudget
+  enabled: false
+  # Annotations to add to the PodDisruptionBudget
+  annotations: {}
+  # Minimum available pods (mutually exclusive with maxUnavailable)
+  minAvailable: 1
+  # Maximum unavailable pods (mutually exclusive with minAvailable)
+  # maxUnavailable: 1
+
+# NetworkPolicy configuration
+networkPolicy:
+  # Enable NetworkPolicy
+  enabled: false
+  # Annotations to add to the NetworkPolicy
+  annotations: {}
+  # Ingress rules (if not specified, allows traffic from ingress-nginx namespace)
+  ingress: []
+  # Egress rules (if not specified, allows all egress)
+  egress: []
+
+# ServiceMonitor configuration for Prometheus
+serviceMonitor:
+  # Enable ServiceMonitor
+  enabled: false
+  # Additional labels for ServiceMonitor
+  additionalLabels: {}
+  # Annotations for ServiceMonitor
+  annotations: {}
+  # Scrape interval
+  interval: 30s
+  # Scrape timeout
+  scrapeTimeout: 10s
+  # Honor labels
+  honorLabels: false
+  # Metric relabelings
+  metricRelabelings: []
+  # Relabelings
+  relabelings: []
+
+# Runtime class for container isolation (gVisor, Kata, etc.)
+runtimeClassName: ""
+
+# Pod Security Standards (Kubernetes 1.25+)
+podSecurityStandard:
+  # Enable Pod Security Standards labels
+  enabled: true
+  # Security level: privileged, baseline, restricted
+  level: restricted
+
+# HorizontalPodAutoscaler configuration
+horizontalPodAutoscaler:
+  # Enable HPA
+  enabled: false
+  # Minimum number of replicas
+  minReplicas: 1
+  # Maximum number of replicas
+  maxReplicas: 5
+  # Target CPU utilization percentage
+  targetCPUUtilizationPercentage: 80
+  # Target memory utilization percentage
+  targetMemoryUtilizationPercentage: null
+  # Annotations for HPA
+  annotations: {}
+  # Custom metrics (advanced)
+  customMetrics: []
+  # HPA behavior configuration
+  behavior: {}
+
 webservice:
   # Container image (required)
   image: "nginx:latest"
@@ -39,6 +121,25 @@ webservice:
 
   replicas: 1
   port: 80
+
+  # TopologySpreadConstraints for better pod distribution
+  topologySpreadConstraints: []
+    # Example: Spread pods across nodes
+    # - maxSkew: 1
+    #   topologyKey: kubernetes.io/hostname
+    #   whenUnsatisfiable: DoNotSchedule
+    #   labelSelector:
+    #     matchLabels:
+    #       app.kubernetes.io/name: wik-webservice
+    #       app.kubernetes.io/instance: release-name
+    # Example: Spread pods across zones
+    # - maxSkew: 1
+    #   topologyKey: topology.kubernetes.io/zone
+    #   whenUnsatisfiable: DoNotSchedule
+    #   labelSelector:
+    #     matchLabels:
+    #       app.kubernetes.io/name: wik-webservice
+    #       app.kubernetes.io/instance: release-name
 
   service:
     enabled: true
@@ -99,18 +200,30 @@ webservice:
     # runAsGroup: 1000
     # fsGroup: 1000
 
+  # Host protection (explicitly set to secure defaults)
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+
+  # Enable service links (injects all services as environment variables)
+  enableServiceLinks: false
+
   # Container-level security context
   containerSecurityContext: {}
     # allowPrivilegeEscalation: false
     # readOnlyRootFilesystem: true
+    # seccompProfile:
+    #   type: RuntimeDefault
 
   resources: {}
     # requests:
     #   memory: "512Mi"
     #   cpu: "250m"
+    #   ephemeral-storage: "1Gi"
     # limits:
     #   memory: "1Gi"
     #   cpu: "500m"
+    #   ephemeral-storage: "2Gi"
 
   hostAliases: []
     # - ip: "127.0.0.1"
@@ -150,6 +263,16 @@ webservice:
     # initialDelaySeconds: 5
     # periodSeconds: 5
 
+  startupProbe: {}
+    # httpGet:
+    #   path: /startup
+    #   port: 80
+    # initialDelaySeconds: 10
+    # periodSeconds: 10
+    # timeoutSeconds: 5
+    # failureThreshold: 30
+    # successThreshold: 1
+
   # Environment variables
   env:
     plaintext: {}
@@ -171,19 +294,23 @@ webservice:
     #             values:
     #               - eu-west-1a
 
-  # Persistent storage (creates PVC)
-  storage: {}
-    # Example: creates a PVC named <release>-data
-    # data:
-    #   size: 10Gi
-    #   storageClass: standard
-
-  # Volume mounts (supports PVC, ConfigMap, Secret)
+  # Volume mounts (supports PVC, ConfigMap, Secret, emptyDir)
   volumes: []
-    # Mount from PVC (requires matching entry in storage)
+    # Mount from PVC (storage contains the PVC spec)
     # - name: data
     #   mountPath: /app/data
-    #   storage: true
+    #   storage:
+    #     accessModes:
+    #       - ReadWriteOnce
+    #     resources:
+    #       requests:
+    #         storage: 10Gi
+    #     storageClassName: standard
+    #
+    # Mount emptyDir (ephemeral storage)
+    # - name: cache
+    #   mountPath: /tmp/cache
+    #   emptyDir: {}
     #
     # Mount from ConfigMap
     # - name: config

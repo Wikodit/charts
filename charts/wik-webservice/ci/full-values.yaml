@@ -2,10 +2,10 @@ general:
   sealedSecrets: false
 
 webservice:
-  image: nginx:latest
+  image: nginxinc/nginx-unprivileged:latest
   imagePullPolicy: Always
   replicas: 2
-  port: 80
+  port: 8080
   hosts:
     - test.example.com
     - api.example.com
@@ -53,15 +53,15 @@ webservice:
 
   livenessProbe:
     httpGet:
-      path: /health
-      port: 80
+      path: /
+      port: 8080
     initialDelaySeconds: 30
     periodSeconds: 10
 
   readinessProbe:
     httpGet:
-      path: /ready
-      port: 80
+      path: /
+      port: 8080
     initialDelaySeconds: 5
     periodSeconds: 5
 
@@ -76,20 +76,33 @@ webservice:
 
   affinity:
     nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 1
+          preference:
+            matchExpressions:
               - key: topology.kubernetes.io/zone
                 operator: In
                 values:
                   - eu-west-1a
 
-  storage:
-    data:
-      size: 10Gi
-      storageClass: standard
-
   volumes:
     - name: data
       mountPath: /app/data
-      storage: true
+      storage:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: standard
+
+    # nginx needs writable dirs when using readOnlyRootFilesystem
+    - name: nginx-cache
+      mountPath: /var/cache/nginx
+      emptyDir: {}
+    - name: nginx-run
+      mountPath: /var/run
+      emptyDir: {}
+    - name: nginx-tmp
+      mountPath: /tmp
+      emptyDir: {}

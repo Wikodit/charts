@@ -196,10 +196,6 @@
           "type": "object",
           "default": {}
         },
-        "storage": {
-          "type": "object",
-          "default": {}
-        },
         "volumes": {
           "type": "array",
           "items": {

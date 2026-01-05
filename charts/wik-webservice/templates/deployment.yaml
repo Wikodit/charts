@@ -6,8 +6,13 @@ metadata:
   labels:
     app: {{ template "name" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{ if .Values.podSecurityStandard.enabled }}
+    pod-security.kubernetes.io/enforce: {{ .Values.podSecurityStandard.level }}
+    pod-security.kubernetes.io/audit: {{ .Values.podSecurityStandard.level }}
+    pod-security.kubernetes.io/warn: {{ .Values.podSecurityStandard.level }}
+{{ end }}
 spec:
   replicas: {{ .Values.webservice.replicas }}
   revisionHistoryLimit: {{ .Values.webservice.revisionHistoryLimit }}
@@ -15,6 +20,10 @@ spec:
     matchLabels:
       app: {{ template "name" . }}
       release: {{ .Release.Name }}
+{{ if .Values.webservice.topologySpreadConstraints }}
+  topologySpreadConstraints:
+{{ .Values.webservice.topologySpreadConstraints | toYaml | indent 4 }}
+{{ end }}
 {{ if .Values.webservice.strategy }}
   strategy:
 {{ .Values.webservice.strategy | toYaml | indent 4 }}
@@ -34,14 +43,29 @@ spec:
 {{ .Values.webservice.annotations | toYaml | indent 8 }}
 {{ end }}
     spec:
+{{ if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "serviceAccountName" . }}
+{{ end }}
+      automountServiceAccountToken: false
+      enableServiceLinks: {{ .Values.webservice.enableServiceLinks }}
+      hostNetwork: {{ .Values.webservice.hostNetwork }}
+      hostPID: {{ .Values.webservice.hostPID }}
+      hostIPC: {{ .Values.webservice.hostIPC }}
+{{ if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName }}
+{{ end }}
 {{ if .Values.webservice.hostAliases }}
       hostAliases:
 {{ .Values.webservice.hostAliases | toYaml | indent 8 }}
 {{ end }}
-{{ if .Values.webservice.securityContext }}
       securityContext:
+{{- if .Values.webservice.securityContext }}
 {{ .Values.webservice.securityContext | toYaml | indent 8 }}
-{{ end }}
+{{- else }}
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+{{- end }}
 {{ if .Values.webservice.dnsConfig }}
       dnsConfig:
 {{ .Values.webservice.dnsConfig | toYaml | indent 8 }}
@@ -52,10 +76,20 @@ spec:
       containers:
         - name: {{ template "fullname" . }}
           image: {{ .Values.webservice.image }}
-{{ if .Values.webservice.containerSecurityContext}}
           securityContext:
+{{- if .Values.webservice.containerSecurityContext }}
 {{ .Values.webservice.containerSecurityContext | toYaml | indent 12 }}
-{{ end }}
+{{- else }}
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+{{- end }}
           imagePullPolicy: {{ .Values.webservice.imagePullPolicy }}
           ports:
             - name: http
@@ -86,7 +120,18 @@ spec:
 {{ end }}
 
           resources:
+{{- if .Values.webservice.resources }}
 {{ .Values.webservice.resources | toYaml | indent 12 }}
+{{- else }}
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 2Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 1Gi
+{{- end }}
 {{ if .Values.webservice.livenessProbe }}
           livenessProbe:
 {{ .Values.webservice.livenessProbe | toYaml | indent 12 }}
@@ -94,6 +139,10 @@ spec:
 {{ if .Values.webservice.readinessProbe }}
           readinessProbe:
 {{ .Values.webservice.readinessProbe | toYaml | indent 12 }}
+{{ end }}
+{{ if .Values.webservice.startupProbe }}
+          startupProbe:
+{{ .Values.webservice.startupProbe | toYaml | indent 12 }}
 {{ end }}
 {{ if .Values.webservice.volumes }}
           volumeMounts:
@@ -159,7 +208,7 @@ spec:
 
 {{ if .Values.webservice.imagePullAuth }}
       imagePullSecrets:
-        - name: {{ template "fullname" . }}-docker
+        - name: {{ template "fullname" . }}-registry
 {{ end }}
 
 {{ if .Values.webservice.volumes }}
@@ -183,6 +232,11 @@ spec:
           secret:
             secretName: {{ .secret.name }}
             optional: {{ .secret.optional }}
+{{ end }}
+
+{{ if hasKey . "emptyDir" }}
+        - name: {{ .name }}
+          emptyDir: {{ if eq (len .emptyDir) 0 }}{}{{ else }}{{ .emptyDir | toJson }}{{ end }}
 {{ end }}
 
 {{ end }}

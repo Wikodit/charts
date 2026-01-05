@@ -1,0 +1,74 @@
+suite: startup probe tests
+templates:
+  - deployment.yaml
+tests:
+  - it: should not add startupProbe when empty
+    set:
+      webservice:
+        image: nginx:latest
+        startupProbe: {}
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].startupProbe
+  - it: should add startupProbe when specified
+    set:
+      webservice:
+        image: nginx:latest
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+          successThreshold: 1
+    asserts:
+      - exists:
+          path: spec.template.spec.containers[0].startupProbe
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: "/startup"
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.port
+          value: 80
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.initialDelaySeconds
+          value: 10
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.failureThreshold
+          value: 30
+  - it: should support TCP socket startup probe
+    set:
+      webservice:
+        image: nginx:latest
+        startupProbe:
+          tcpSocket:
+            port: 8080
+          periodSeconds: 5
+          failureThreshold: 12
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.tcpSocket.port
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.periodSeconds
+          value: 5
+  - it: should support exec startup probe
+    set:
+      webservice:
+        image: nginx:latest
+        startupProbe:
+          exec:
+            command:
+              - cat
+              - /tmp/ready
+          initialDelaySeconds: 5
+          periodSeconds: 10
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.exec.command[0]
+          value: "cat"
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.exec.command[1]
+          value: "/tmp/ready"

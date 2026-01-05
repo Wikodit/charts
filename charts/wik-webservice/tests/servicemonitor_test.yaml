@@ -1,0 +1,81 @@
+suite: service monitor tests
+templates:
+  - servicemonitor.yaml
+tests:
+  - it: should create a ServiceMonitor when enabled and metrics enabled
+    set:
+      webservice:
+        image: nginx:latest
+        metrics:
+          enabled: true
+          path: /metrics
+      serviceMonitor:
+        enabled: true
+    asserts:
+      - containsDocument:
+          kind: ServiceMonitor
+          apiVersion: monitoring.coreos.com/v1
+          name: "release-name-wik-webservice"
+      - equal:
+          path: spec.endpoints[0].port
+          value: "metrics"
+      - equal:
+          path: spec.endpoints[0].path
+          value: "/metrics"
+      - equal:
+          path: spec.endpoints[0].interval
+          value: "30s"
+  - it: should not create a ServiceMonitor when metrics disabled
+    set:
+      webservice:
+        image: nginx:latest
+        metrics:
+          enabled: false
+      serviceMonitor:
+        enabled: true
+    asserts:
+      - notContainsDocument:
+          kind: ServiceMonitor
+          apiVersion: monitoring.coreos.com/v1
+  - it: should not create a ServiceMonitor when serviceMonitor disabled
+    set:
+      webservice:
+        image: nginx:latest
+        metrics:
+          enabled: true
+      serviceMonitor:
+        enabled: false
+    asserts:
+      - notContainsDocument:
+          kind: ServiceMonitor
+          apiVersion: monitoring.coreos.com/v1
+  - it: should use custom configuration when provided
+    set:
+      webservice:
+        image: nginx:latest
+        metrics:
+          enabled: true
+          path: /custom-metrics
+      serviceMonitor:
+        enabled: true
+        interval: 60s
+        scrapeTimeout: 30s
+        honorLabels: true
+        additionalLabels:
+          release: prometheus
+    asserts:
+      - equal:
+          path: spec.endpoints[0].path
+          value: "/custom-metrics"
+      - equal:
+          path: spec.endpoints[0].interval
+          value: "60s"
+      - equal:
+          path: spec.endpoints[0].scrapeTimeout
+          value: "30s"
+      - equal:
+          path: spec.endpoints[0].honorLabels
+          value: true
+      - equal:
+          path: metadata.labels.release
+          value: "prometheus"

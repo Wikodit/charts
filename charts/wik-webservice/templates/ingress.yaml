@@ -43,7 +43,7 @@ spec:
               service:
                 name: {{ template "fullname" $root }}
                 port:
-                  number: 80
+                  number: {{ $root.Values.webservice.service.port | default $root.Values.webservice.port | default 80 }}
             pathType: Prefix
             path: /
     {{ end }}
