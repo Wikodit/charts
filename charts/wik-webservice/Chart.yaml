@@ -2,13 +2,11 @@ apiVersion: v2
 name: wik-webservice
 description: Quick start for a all-in-one webservice
 type: application
-version: 0.4.0
-appVersion: "0.4.0"
-
+version: 0.5.0
+appVersion: "0.5.0"
 home: https://github.com/wikodit/charts
 sources:
   - https://github.com/wikodit/charts
-
 maintainers:
   - name: Wikodit
     url: https://github.com/wikodit
@@ -16,13 +14,11 @@ maintainers:
     email: anthony@wikodit.fr
   - name: Jeremy Trufier
     email: jeremy@wikodit.fr
-
 keywords:
   - wikodit
   - webservice
   - deployment
   - ingress
   - service
-
 annotations:
   artifacthub.io/license: MIT

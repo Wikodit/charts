@@ -1,42 +1,80 @@
-CHANGELOG
-=========
 
-v0.4.0
-------
-* feat: add metrics configuration with Prometheus annotations on Service
-* feat: add service.port configuration (no longer hardcoded to 80)
-* feat: add service.annotations support
-* feat: add ingress.className support (modern ingressClassName spec)
-* feat: add ingress.tlsAcme configuration
-* feat: add terminationGracePeriodSeconds support
-* feat: add Kubernetes version check for Ingress apiVersion (v1, v1beta1, extensions)
-* fix: typo containerSsecurityContext in deployment template
-* fix: duplicate release label in pod template
-* docs: complete README with configuration tables and examples
-* docs: add comprehensive examples in values.yaml
+## [wik-webservice-v0.5.0](https://github.com/wikodit/charts/compare/wik-webservice-v0.4.0...wik-webservice-v0.5.0) - 2026-01-06
 
-v0.3.2
-------
-* feat: add affinity
+### Bug Fixes
 
-v0.3.1
-------
-* fix: wrong key in deployment for containerSecurityContext
+* use preferred affinity instead of required for CI testing
+* correct probe ports in full-values.yaml for nginx-unprivileged
+* add /tmp emptyDir volume for nginx CI testing
+* use configurable port in ingress and update CI values
+* use nginx-unprivileged image for CI testing
+* correct storage configuration in volumes
+* remove deprecated requirements.yaml file
+* change ServiceAccount defaults for better security
+* rename image pull secret from -docker to -registry
 
-v0.3.0
-------
-* feat: migrate securityContext to containerSecurityContext
-* feat: add securityContext (not the container one)
+### CI/CD
 
-v0.2.2
-------
-* feat: allow overriding command and entrypoint
+* fix release action
+* fix tests
 
-v0.2.1
-------
-* fix: additionalContainers and initContainers optional env not respected
-* fix: wrong condition livenessProbe instead of readinessProbe
+### Code Refactoring
 
-v0.2.0
-------
-* add `webservice.ingress.enabled` and `webservice.service.enabled`
+* rename docker-secret to registry-secret
+
+### Documentation
+
+* auto-generate chart documentation
+* add image security best practices
+* document security and resource defaults
+* auto-generate chart documentation
+* **wik-webservice:** improve NOTES.txt with dynamic feature sections
+
+### Features
+
+* add explicit host protection settings
+* add Pod Security Standards support
+* add runtimeClassName support
+* add ephemeral storage limits by default
+* add enableServiceLinks configuration
+* add seccompProfile RuntimeDefault by default
+* add startupProbe support
+* add HorizontalPodAutoscaler support
+* add ServiceMonitor support for Prometheus
+* add TopologySpreadConstraints support
+* add NetworkPolicy support
+* add PodDisruptionBudget support
+* add ServiceAccount configuration
+* add default resource requests and limits
+* add secure PodSecurityContext defaults
+* add secure containerSecurityContext defaults
+* add release badges to chart README templates
+
+
+## wik-webservice-v0.4.0 - 2025-12-31
+
+### Bug Fixes
+
+* resolve Helm chart linting errors
+* **wik-webservice:** v0.3.0
+* **wik-webservice:** v0.2.1
+
+### CI/CD
+
+* linting & testing
+
+### Documentation
+
+* auto-generate chart documentation
+
+### Features
+
+* standardize all charts to v2 and add documentation templates
+* **wik-webservice:** v0.4.0
+* **wik-webservice:** v0.3.2
+* **wik-webservice:** v0.3.1
+* **wik-webservice:** v0.2.2
+* **wik-webservice:** v0.2.0
+* **wik-webservice:** v0.1.0
+* **wik-webservice:** v0.0.5
+
