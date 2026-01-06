@@ -20,7 +20,7 @@ on:
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: 'false'
+  cancel-in-progress: false
 
 env:
   GHCR_REGISTRY: ghcr.io
@@ -53,17 +53,18 @@ jobs:
             # Manual trigger with specific chart
             CHARTS='["${{ inputs.chart }}"]'
           else
-            # Auto-detect using chart-testing
-            # Use main as target branch for push events
-            TARGET_BRANCH="main"
-            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-              TARGET_BRANCH="${{ github.base_ref }}"
-            fi
-
-            changed=$(ct list-changed --config ct.yaml --target-branch $TARGET_BRANCH 2>/dev/null || echo "")
-            if [[ -z "$changed" ]]; then
-              # Fallback: check git diff
-              changed=$(git diff --name-only origin/$TARGET_BRANCH HEAD -- charts/ 2>/dev/null | grep -oP 'charts/\K[^/]+' | sort -u || echo "")
+            # For push events, compare with the commit before the push
+            if [[ "${{ github.event_name }}" == "push" ]]; then
+              BEFORE_SHA="${{ github.event.before }}"
+              if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+                # Initial push, check all charts
+                changed=$(ls -d charts/*/ 2>/dev/null | xargs -I{} basename {} || echo "")
+              else
+                changed=$(git diff --name-only "$BEFORE_SHA" HEAD -- charts/ | grep -oP 'charts/\K[^/]+' | sort -u || echo "")
+              fi
+            else
+              # For other events (workflow_dispatch without chart input)
+              changed=$(git diff --name-only origin/main HEAD -- charts/ 2>/dev/null | grep -oP 'charts/\K[^/]+' | sort -u || echo "")
             fi
 
             if [[ -n "$changed" ]]; then
@@ -147,20 +148,20 @@ jobs:
           # Check for features
           elif echo "$COMMITS" | grep -qiE '^[a-f0-9]+ feat'; then
             BUMP_TYPE="minor"
-          # Check for fixes or any other changes
-          elif echo "$COMMITS" | grep -qiE '^[a-f0-9]+ (fix|perf|refactor|docs|style|test|chore|ci|build)'; then
-            BUMP_TYPE="patch"
-          elif [[ -n "$COMMITS" ]]; then
-            # Any other commits default to patch
+          # Check for fixes or performance improvements
+          elif echo "$COMMITS" | grep -qiE '^[a-f0-9]+ (fix|perf)'; then
             BUMP_TYPE="patch"
           fi
 
           echo "Bump type: ${BUMP_TYPE}"
 
           if [[ "$BUMP_TYPE" == "none" ]]; then
-            echo "::error::No commits found since last release. Nothing to bump."
-            exit 1
+            echo "::notice::No releasable commits found (need feat, fix, or perf). Skipping automatic release."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
 
           # Calculate new version
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
@@ -184,6 +185,7 @@ jobs:
           echo "new_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Update Chart.yaml version
+        if: steps.version-bump.outputs.skip != 'true'
         id: update-version
         run: |
           CHART_PATH="charts/${{ matrix.chart }}"
@@ -197,6 +199,7 @@ jobs:
           cat "${CHART_PATH}/Chart.yaml"
 
       - name: Get chart info
+        if: steps.version-bump.outputs.skip != 'true'
         id: chart-info
         run: |
           CHART_PATH="charts/${{ matrix.chart }}"
@@ -220,6 +223,7 @@ jobs:
           echo "App Version: ${APP_VERSION}"
 
       - name: Check if version already released
+        if: steps.version-bump.outputs.skip != 'true'
         id: check-version
         run: |
           TAG="${{ steps.chart-info.outputs.tag }}"
@@ -237,63 +241,68 @@ jobs:
           fi
 
       - name: Update dependencies
+        if: steps.version-bump.outputs.skip != 'true'
         run: |
           helm dependency update "${{ steps.chart-info.outputs.path }}" || true
 
+      - name: Regenerate README
+        if: steps.version-bump.outputs.skip != 'true'
+        run: |
+          # Install helm-docs
+          HELM_DOCS_VERSION="1.14.2"
+          wget -O helm-docs.tar.gz "https://github.com/norwoodj/helm-docs/releases/download/v${HELM_DOCS_VERSION}/helm-docs_${HELM_DOCS_VERSION}_Linux_x86_64.tar.gz"
+          tar xzf helm-docs.tar.gz
+          sudo mv helm-docs /usr/local/bin/
+
+          # Regenerate README for this chart
+          helm-docs --chart-search-root "${{ steps.chart-info.outputs.path }}" --template-files README.md.gotmpl
+          echo "Regenerated README for ${{ steps.chart-info.outputs.name }}"
+
       - name: Generate CHANGELOG
+        if: steps.version-bump.outputs.skip != 'true'
+        id: changelog
         run: |
           # Install git-chglog
-          wget -O git-chglog.tar.gz https://github.com/git-chglog/git-chglog/releases/latest/download/git-chglog_linux_amd64.tar.gz
+          CHGLOG_VERSION="0.15.4"
+          wget -O git-chglog.tar.gz "https://github.com/git-chglog/git-chglog/releases/download/v${CHGLOG_VERSION}/git-chglog_${CHGLOG_VERSION}_linux_amd64.tar.gz"
           tar xzf git-chglog.tar.gz
           sudo mv git-chglog /usr/local/bin/
 
-          # Generate changelog for this chart
           CHANGELOG_PATH="${{ steps.chart-info.outputs.path }}/CHANGELOG.md"
+          NEW_TAG="${{ steps.chart-info.outputs.name }}-v${{ steps.chart-info.outputs.version }}"
 
-          # Get previous tag for this chart
-          PREV_TAG=$(git tag --list "${{ steps.chart-info.outputs.name }}-*" --sort=-version:refname | sed -n '2p' || echo "")
+          # Create temporary tag for git-chglog
+          git tag "$NEW_TAG"
 
-          if [[ -f "$CHANGELOG_PATH" ]]; then
-            # Backup existing changelog
-            cp "$CHANGELOG_PATH" "$CHANGELOG_PATH.bak"
-          fi
+          # Generate full changelog for this chart (all versions, only this chart's commits)
+          git-chglog --config .chglog/config.yml --output "$CHANGELOG_PATH" --tag-filter-pattern "${{ steps.chart-info.outputs.name }}-v.*" --path "${{ steps.chart-info.outputs.path }}"
 
-          # Generate new changelog entry
-          if [[ -n "$PREV_TAG" ]]; then
-            git-chglog --config .chglog/config.yml --output "$CHANGELOG_PATH" "$PREV_TAG..HEAD" --path "${{ steps.chart-info.outputs.path }}"
-          else
-            git-chglog --config .chglog/config.yml --output "$CHANGELOG_PATH" --path "${{ steps.chart-info.outputs.path }}"
-          fi
-
-          # If backup exists, prepend new entries to it
-          if [[ -f "$CHANGELOG_PATH.bak" ]]; then
-            echo "# Changelog" > temp_changelog
-            echo "" >> temp_changelog
-            cat "$CHANGELOG_PATH" >> temp_changelog
-            echo "" >> temp_changelog
-            tail -n +2 "$CHANGELOG_PATH.bak" >> temp_changelog
-            mv temp_changelog "$CHANGELOG_PATH"
-            rm "$CHANGELOG_PATH.bak"
-          else
-            # Add header if this is a new changelog
-            { echo "# Changelog"; echo ""; cat "$CHANGELOG_PATH"; } > temp_changelog
-            mv temp_changelog "$CHANGELOG_PATH"
-          fi
+          # Remove temporary tag (GitHub release will create it)
+          git tag -d "$NEW_TAG"
 
           echo "Generated CHANGELOG for ${{ steps.chart-info.outputs.name }}"
 
+          # Extract changelog for release body
+          CHANGELOG_CONTENT=$(cat "$CHANGELOG_PATH" | head -100)
+          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGELOG_CONTENT" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
       - name: Package chart
+        if: steps.version-bump.outputs.skip != 'true'
         run: |
           mkdir -p .packaged
           helm package "${{ steps.chart-info.outputs.path }}" -d .packaged/
           echo "Packaged: .packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz"
 
       - name: Login to GHCR
+        if: steps.version-bump.outputs.skip != 'true'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.GHCR_REGISTRY }} \
             -u ${{ github.actor }} --password-stdin
 
       - name: Push to GHCR
+        if: steps.version-bump.outputs.skip != 'true'
         id: push-ghcr
         run: |
           PACKAGE=".packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz"
@@ -307,6 +316,7 @@ jobs:
           COSIGN_EXPERIMENTAL: "true"
 
       - name: Sign chart in GHCR (keyless)
+        if: steps.version-bump.outputs.skip != 'true'
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
@@ -320,13 +330,13 @@ jobs:
           echo "Signed ${IMAGE}"
 
       - name: Login to Harbor
-        if: vars.HARBOR_REGISTRY != ''
+        if: steps.version-bump.outputs.skip != 'true' && vars.HARBOR_REGISTRY != ''
         run: |
           echo "${{ secrets.HARBOR_PASSWORD }}" | helm registry login ${{ vars.HARBOR_REGISTRY }} \
             -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
 
       - name: Push to Harbor
-        if: vars.HARBOR_REGISTRY != ''
+        if: steps.version-bump.outputs.skip != 'true' && vars.HARBOR_REGISTRY != ''
         run: |
           PACKAGE=".packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz"
           HARBOR_REPO="${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT || 'library' }}"
@@ -335,7 +345,7 @@ jobs:
           echo "Pushed to Harbor"
 
       - name: Sign chart in Harbor (keyless)
-        if: vars.HARBOR_REGISTRY != ''
+        if: steps.version-bump.outputs.skip != 'true' && vars.HARBOR_REGISTRY != ''
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
@@ -349,6 +359,7 @@ jobs:
           echo "Signed ${IMAGE}"
 
       - name: Generate SBOM
+        if: steps.version-bump.outputs.skip != 'true'
         run: |
           # Generate SBOM for the chart
           PACKAGE=".packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz"
@@ -374,6 +385,7 @@ jobs:
           echo "Generated SBOM"
 
       - name: Create GitHub Release
+        if: steps.version-bump.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.chart-info.outputs.tag }}
@@ -399,24 +411,31 @@ jobs:
               --certificate-identity-regexp='https://github.com/${{ github.repository }}' \
               --certificate-oidc-issuer='https://token.actions.githubusercontent.com'
             ```
+
+            ---
+
+            ${{ steps.changelog.outputs.changelog }}
           files: |
             .packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.tgz
             .packaged/${{ steps.chart-info.outputs.name }}-${{ steps.chart-info.outputs.version }}.sbom.json
-          generate_release_notes: true
+          generate_release_notes: false
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit CHANGELOG
-        if: success()
+        if: success() && steps.version-bump.outputs.skip != 'true'
         run: |
           # Configure git
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          # Add Chart.yaml (version bump) and CHANGELOG
-          git add "${{ steps.chart-info.outputs.path }}/Chart.yaml"
-          git add "${{ steps.chart-info.outputs.path }}/CHANGELOG.md"
+          # Show what files were modified
+          echo "Modified files:"
+          git status --short
+
+          # Add all changes from this chart (including Chart.lock from dependency update)
+          git add "${{ steps.chart-info.outputs.path }}/"
 
           # Check if there are changes to commit
           if git diff --staged --quiet; then
@@ -426,8 +445,11 @@ jobs:
               -m "Bump version from ${{ steps.version-bump.outputs.current_version }} to ${{ steps.version-bump.outputs.new_version }}" \
               -m "Update CHANGELOG.md"
 
-            # Pull latest changes to avoid conflicts
-            git pull --rebase origin main
+            # Fetch and rebase (discard any untracked/modified files outside chart)
+            git checkout -- . || true
+            git clean -fd || true
+            git fetch origin main
+            git rebase origin/main
 
             # Push changes
             git push https://github-actions:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
@@ -435,6 +457,7 @@ jobs:
           fi
 
       - name: Summary
+        if: steps.version-bump.outputs.skip != 'true'
         run: |
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
           ## Release Summary
