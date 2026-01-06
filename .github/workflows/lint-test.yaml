@@ -204,7 +204,7 @@ jobs:
         uses: helm/chart-testing-action@v2.7.0
 
       - name: Create kind cluster
-        uses: helm/kind-action@v1.10.0
+        uses: helm/kind-action@v1.13.0
         with:
           cluster_name: chart-testing
 
