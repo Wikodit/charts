@@ -1,16 +1,56 @@
-Your {{ .Chart.Name }} chart has been installed successfully!
+🚀 {{ .Chart.Name }} v{{ .Chart.Version }} deployed successfully!
 
-To get more information about your deployment, run:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  kubectl get deployment {{ .Release.Name }}-{{ .Chart.Name }}
+📦 DEPLOYMENT STATUS
 
-To check the status of your pods, run:
+  kubectl get deployment {{ include "fullname" . }} -n {{ .Release.Namespace }}
+  kubectl get pods -l app=wik-webservice,release={{ .Release.Name }} -n {{ .Release.Namespace }}
 
-  kubectl get pods -l app.kubernetes.io/name={{ .Chart.Name }},app.kubernetes.io/instance={{ .Release.Name }}
+{{- if .Values.webservice.hosts }}
 
-To access your service, check the ingress details:
+🌐 INGRESS
+{{- range .Values.webservice.hosts }}
+  https://{{ . }}
+{{- end }}
 
-  kubectl get ingress {{ .Release.Name }}-{{ .Chart.Name }}
+  kubectl get ingress {{ include "fullname" $ }} -n {{ $.Release.Namespace }}
+{{- end }}
 
-For more information on using the chart, see the documentation at:
-https://github.com/wikodit/charts/tree/main/charts/{{ .Chart.Name }}
+{{- if .Values.webservice.service.enabled }}
+
+🔌 SERVICE
+
+  kubectl get svc {{ include "fullname" . }} -n {{ .Release.Namespace }}
+{{- end }}
+
+{{- if .Values.webservice.metrics.enabled }}
+
+📊 METRICS
+
+  Metrics endpoint: :{{ .Values.webservice.metrics.port }}{{ .Values.webservice.metrics.path }}
+{{- end }}
+
+{{- if .Values.serviceMonitor.enabled }}
+
+  ServiceMonitor enabled for Prometheus scraping
+{{- end }}
+
+{{- if .Values.webservice.hpa.enabled }}
+
+⚖️  AUTOSCALING
+
+  HPA enabled (min: {{ .Values.webservice.hpa.minReplicas }}, max: {{ .Values.webservice.hpa.maxReplicas }})
+  kubectl get hpa {{ include "fullname" . }} -n {{ .Release.Namespace }}
+{{- end }}
+
+{{- if .Values.podDisruptionBudget.enabled }}
+
+🛡️  POD DISRUPTION BUDGET
+
+  kubectl get pdb {{ include "fullname" . }} -n {{ .Release.Namespace }}
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 Documentation: https://github.com/wikodit/charts/tree/main/charts/{{ .Chart.Name }}
