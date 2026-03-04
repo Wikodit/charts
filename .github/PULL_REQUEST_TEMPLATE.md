@@ -17,6 +17,7 @@
 - [ ] wik-cronjob
 - [ ] wik-rbac
 - [ ] wik-node-local-dns
+- [ ] wik-dummy
 
 ## Checklist
 

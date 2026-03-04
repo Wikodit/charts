@@ -1,0 +1,14 @@
+🚀 {{ .Chart.Name }} v{{ .Chart.Version }} deployed successfully!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This is a dummy chart that does nothing.
+It is intended for testing purposes only.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 Documentation: https://github.com/wikodit/charts/tree/main/charts/{{ .Chart.Name }}
+🐛 Issues: https://github.com/wikodit/charts/issues
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Maintained by Wikodit | https://www.wikodit.fr

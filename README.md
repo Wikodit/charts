@@ -30,6 +30,7 @@ helm install my-webservice oci://ghcr.io/wikodit/charts/wik-webservice --version
 | [wik-cronjob](charts/wik-cronjob/) | Quick start for all-in-one cronjob | [README](charts/wik-cronjob/README.md) |
 | [wik-rbac](charts/wik-rbac/) | RBAC management with rbac-manager | [README](charts/wik-rbac/README.md) |
 | [wik-node-local-dns](charts/wik-node-local-dns/) | Node-local DNS configuration | [README](charts/wik-node-local-dns/README.md) |
+| [wik-dummy](charts/wik-dummy/) | Dummy chart for testing purposes | - |
 
 ## Repository Structure
 
@@ -40,7 +41,8 @@ charts/
 │   ├── wik-backup/
 │   ├── wik-cronjob/
 │   ├── wik-rbac/
-│   └── wik-node-local-dns/
+│   ├── wik-node-local-dns/
+│   └── wik-dummy/
 └── releases/
 ```
 
