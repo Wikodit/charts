@@ -1,0 +1,23 @@
+apiVersion: v2
+name: wik-dummy
+description: A dummy chart that does nothing, used for testing purposes
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+home: https://github.com/wikodit/charts
+sources:
+  - https://github.com/wikodit/charts
+
+maintainers:
+  - name: Wikodit
+    url: https://github.com/wikodit
+  - name: Jeremy Trufier
+    email: jeremy@wikodit.fr
+
+keywords:
+  - wikodit
+  - dummy
+
+annotations:
+  artifacthub.io/license: MIT
