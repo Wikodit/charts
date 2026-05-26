@@ -1,0 +1,90 @@
+{{ $root := . }}
+{{- if .Values.webservice.httpRoute.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- range $key, $value := (.Values.webservice.httpRoute.labels | default dict) }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+{{- with .Values.webservice.httpRoute.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{- with .Values.webservice.httpRoute.parentRefs }}
+  parentRefs:
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- if .Values.webservice.hosts }}
+  hostnames:
+    {{- range .Values.webservice.hosts }}
+    - {{ . | quote }}
+    {{- end }}
+{{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+{{- with .Values.webservice.httpRoute.filters }}
+      filters:
+{{ toYaml . | indent 8 }}
+{{- end }}
+      backendRefs:
+        - name: {{ template "fullname" . }}
+          port: {{ .Values.webservice.service.port | default .Values.webservice.port | default 80 }}
+{{- range .Values.webservice.httpRoute.additionalRules }}
+    - {{ toYaml . | nindent 6 }}
+{{- end }}
+{{- end }}
+{{- range .Values.webservice.additionalHttpRoutes }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ template "fullname" $root }}-{{ .name }}
+  labels:
+    app: {{ template "name" $root }}
+    chart: "{{ $root.Chart.Name }}-{{ $root.Chart.Version }}"
+    heritage: {{ $root.Release.Service }}
+    release: {{ $root.Release.Name }}
+    {{- range $key, $value := (.labels | default dict) }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+{{- with .annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{- with .parentRefs }}
+  parentRefs:
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- with .hosts }}
+  hostnames:
+    {{- range . }}
+    - {{ . | quote }}
+    {{- end }}
+{{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+{{- with .filters }}
+      filters:
+{{ toYaml . | indent 8 }}
+{{- end }}
+      backendRefs:
+        - name: {{ template "fullname" $root }}
+          port: {{ $root.Values.webservice.service.port | default $root.Values.webservice.port | default 80 }}
+{{- range .additionalRules }}
+    - {{ toYaml . | nindent 6 }}
+{{- end }}
+{{- end }}
