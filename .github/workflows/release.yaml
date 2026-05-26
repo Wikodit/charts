@@ -346,6 +346,7 @@ jobs:
 
       - name: Sign chart in Harbor (keyless)
         if: steps.version-bump.outputs.skip != 'true' && vars.HARBOR_REGISTRY != ''
+        continue-on-error: true
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
