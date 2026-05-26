@@ -1,4 +1,19 @@
 
+## [wik-webservice-v0.6.0](https://github.com/wikodit/charts/compare/wik-webservice-v0.5.0...wik-webservice-v0.6.0) - 2026-05-26
+
+### Bug Fixes
+
+* wrong templates dynamic values on NOTES.txt
+
+### Chores
+
+* **wik-webservice:** release v0.5.0 [skip ci]
+
+### Features
+
+* **wik-webservice:** compatibility with Gateway API
+
+
 ## [wik-webservice-v0.5.0](https://github.com/wikodit/charts/compare/wik-webservice-v0.4.0...wik-webservice-v0.5.0) - 2026-01-06
 
 ### Bug Fixes
