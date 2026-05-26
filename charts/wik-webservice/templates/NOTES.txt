@@ -36,11 +36,11 @@
   ServiceMonitor enabled for Prometheus scraping
 {{- end }}
 
-{{- if .Values.webservice.hpa.enabled }}
+{{- if .Values.horizontalPodAutoscaler.enabled }}
 
 ⚖️  AUTOSCALING
 
-  HPA enabled (min: {{ .Values.webservice.hpa.minReplicas }}, max: {{ .Values.webservice.hpa.maxReplicas }})
+  HPA enabled (min: {{ .Values.horizontalPodAutoscaler.minReplicas }}, max: {{ .Values.horizontalPodAutoscaler.maxReplicas }})
   kubectl get hpa {{ include "fullname" . }} -n {{ .Release.Namespace }}
 {{- end }}
 
