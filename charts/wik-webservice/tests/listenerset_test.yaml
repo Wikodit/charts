@@ -1,0 +1,205 @@
+suite: listenerset tests
+templates:
+  - listenerset.yaml
+tests:
+  - it: should not create a ListenerSet when tls is false
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create a ListenerSet when tls is true
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should use httpRoute parentRefs as default gatewayRef
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+              namespace: gateway-system
+    asserts:
+      - equal:
+          path: spec.parentRef.name
+          value: my-gateway
+      - equal:
+          path: spec.parentRef.namespace
+          value: gateway-system
+
+  - it: should use explicit gatewayRef over parentRefs
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+        listenerSet:
+          gatewayRef:
+            name: other-gateway
+            namespace: other-ns
+    asserts:
+      - equal:
+          path: spec.parentRef.name
+          value: other-gateway
+      - equal:
+          path: spec.parentRef.namespace
+          value: other-ns
+
+  - it: should fail when tls is true but no parentRefs and no gatewayRef
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs: []
+        listenerSet:
+          gatewayRef: {}
+    asserts:
+      - failedTemplate:
+          errorMessage: "httpRoute.tls requires either listenerSet.gatewayRef.name or httpRoute.parentRefs to be set"
+
+  - it: should create one listener per host
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+          - api.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+    asserts:
+      - equal:
+          path: spec.listeners[0].hostname
+          value: test.example.com
+      - equal:
+          path: spec.listeners[1].hostname
+          value: api.example.com
+
+  - it: should use hostname with dots replaced by dashes for listener name
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+    asserts:
+      - equal:
+          path: spec.listeners[0].name
+          value: test-example-com
+
+  - it: should use default certificateRef when none specified
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+    asserts:
+      - equal:
+          path: spec.listeners[0].tls.certificateRefs[0].kind
+          value: Secret
+      - matchRegex:
+          path: spec.listeners[0].tls.certificateRefs[0].name
+          pattern: -tls$
+
+  - it: should use custom certificateRefs when specified
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+        listenerSet:
+          tls:
+            mode: Terminate
+            certificateRefs:
+              - kind: Secret
+                name: my-custom-cert
+    asserts:
+      - equal:
+          path: spec.listeners[0].tls.certificateRefs[0].name
+          value: my-custom-cert
+
+  - it: should apply custom port and protocol
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+        listenerSet:
+          port: 8443
+          protocol: HTTPS
+    asserts:
+      - equal:
+          path: spec.listeners[0].port
+          value: 8443
+
+  - it: should include annotations when specified
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          parentRefs:
+            - name: my-gateway
+        listenerSet:
+          annotations:
+            test-annotation: my-value
+    asserts:
+      - equal:
+          path: metadata.annotations.test-annotation
+          value: my-value

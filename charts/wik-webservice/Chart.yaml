@@ -19,6 +19,8 @@ keywords:
   - webservice
   - deployment
   - ingress
+  - httproute
+  - gateway-api
   - service
 annotations:
   artifacthub.io/license: MIT

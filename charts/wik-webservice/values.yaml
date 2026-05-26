@@ -164,6 +164,60 @@ webservice:
       # nginx.ingress.kubernetes.io/auth-secret: basic-auth
       # nginx.ingress.kubernetes.io/auth-type: basic
 
+  # Gateway API HTTPRoute configuration
+  httpRoute:
+    enabled: false
+    # Parent gateway references (omitted if empty, letting the gateway implementation auto-attach)
+    parentRefs: []
+      # - name: my-gateway
+      #   namespace: gateway-system
+      #   sectionName: https
+      #   port: 443
+    # Enable TLS via auto-created ListenerSet (like tlsAcme for Ingress)
+    # Creates HTTPS listeners on the gateway for each host in webservice.hosts
+    # ⚠️ Uses ListenerSet / XListenerSet (experimental in Gateway API < v1.5)
+    tls: false
+    annotations: {}
+    labels: {}
+    # Filters applied to the default rule (e.g. RequestHeaderModifier, RequestRedirect)
+    filters: []
+    # Extra routing rules appended after the default catch-all rule
+    additionalRules: []
+
+  # Additional HTTPRoute resources with custom hosts/config
+  additionalHttpRoutes: []
+    # - name: internal
+    #   parentRefs:
+    #     - name: internal-gateway
+    #   hosts:
+    #     - internal.example.com
+    #   annotations: {}
+    #   labels: {}
+    #   filters: []
+    #   additionalRules: []
+
+  # Advanced ListenerSet configuration (overrides httpRoute.tls defaults)
+  # Only needed for custom port, protocol, certificateRefs, etc.
+  # ⚠️ Uses ListenerSet / XListenerSet (experimental in Gateway API < v1.5)
+  listenerSet:
+    # Gateway to attach listeners to (defaults to httpRoute.parentRefs[0])
+    gatewayRef: {}
+      # name: my-gateway
+      # namespace: gateway-system
+    # Listener port
+    port: 443
+    # Listener protocol
+    protocol: HTTPS
+    # TLS configuration
+    tls:
+      mode: Terminate
+      # Certificate references. If empty, auto-generates: Secret named <fullname>-tls
+      certificateRefs: []
+        # - kind: Secret
+        #   name: my-tls-secret
+    annotations: {}
+    labels: {}
+
   # Additional labels for pods
   additionalLabels: {}
     # app.kubernetes.io/component: frontend

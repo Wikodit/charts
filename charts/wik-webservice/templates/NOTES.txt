@@ -7,7 +7,7 @@
   kubectl get deployment {{ include "fullname" . }} -n {{ .Release.Namespace }}
   kubectl get pods -l app=wik-webservice,release={{ .Release.Name }} -n {{ .Release.Namespace }}
 
-{{- if .Values.webservice.hosts }}
+{{- if and .Values.webservice.hosts .Values.webservice.ingress.enabled }}
 
 🌐 INGRESS
 {{- range .Values.webservice.hosts }}
@@ -15,6 +15,33 @@
 {{- end }}
 
   kubectl get ingress {{ include "fullname" $ }} -n {{ $.Release.Namespace }}
+{{- end }}
+
+{{- if .Values.webservice.httpRoute.enabled }}
+
+🔀 HTTPROUTE (Gateway API)
+{{- range .Values.webservice.hosts }}
+  https://{{ . }}
+{{- end }}
+
+  kubectl get httproute {{ include "fullname" $ }} -n {{ $.Release.Namespace }}
+{{- end }}
+
+{{- range .Values.webservice.additionalHttpRoutes }}
+
+🔀 HTTPROUTE ({{ .name }})
+{{- range .hosts }}
+  https://{{ . }}
+{{- end }}
+
+  kubectl get httproute {{ include "fullname" $ }}-{{ .name }} -n {{ $.Release.Namespace }}
+{{- end }}
+
+{{- if .Values.webservice.httpRoute.tls }}
+
+🔒 LISTENERSET (TLS)
+
+  kubectl get listenerset {{ include "fullname" $ }} -n {{ $.Release.Namespace }}
 {{- end }}
 
 {{- if .Values.webservice.service.enabled }}

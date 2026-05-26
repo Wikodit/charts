@@ -14,6 +14,8 @@ It creates:
 - **Deployment** with configurable containers, probes, and resources
 - **Service** with optional metrics port and Prometheus annotations
 - **Ingress** with configurable hosts and annotations
+- **HTTPRoute** for Gateway API routing (alternative to Ingress)
+- **ListenerSet** for automatic TLS listener provisioning (Gateway API)
 - **PVC** for persistent storage
 
 ## Installation
@@ -38,7 +40,7 @@ helm install my-app ./wik-webservice -f values.yaml
 | `webservice.imagePullPolicy` | Image pull policy | `Always` |
 | `webservice.replicas` | Number of replicas | `1` |
 | `webservice.port` | Container port | `80` |
-| `webservice.hosts` | Ingress hostnames | `[]` |
+| `webservice.hosts` | Hostnames (used by Ingress and/or HTTPRoute) | `[]` |
 | `webservice.command` | Override container command | `[]` |
 | `webservice.args` | Override container args | `[]` |
 
@@ -63,6 +65,232 @@ helm install my-app ./wik-webservice -f values.yaml
 |-----------|-------------|---------|
 | `webservice.ingress.enabled` | Create an Ingress | `true` |
 | `webservice.ingress.annotations` | Ingress annotations | `{}` |
+
+### HTTPRoute (Gateway API)
+
+The chart supports [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute as an alternative to Ingress. Gateway API CRDs must be installed on the cluster.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.httpRoute.enabled` | Create an HTTPRoute | `false` |
+| `webservice.httpRoute.parentRefs` | Gateway parent references (omitted if empty) | `[]` |
+| `webservice.httpRoute.tls` | Auto-create a ListenerSet for TLS (like `ingress.tlsAcme`) | `false` |
+| `webservice.httpRoute.annotations` | HTTPRoute annotations | `{}` |
+| `webservice.httpRoute.labels` | HTTPRoute labels | `{}` |
+| `webservice.httpRoute.filters` | Filters for the default rule | `[]` |
+| `webservice.httpRoute.additionalRules` | Extra routing rules | `[]` |
+| `webservice.additionalHttpRoutes` | Additional HTTPRoute resources with custom hosts | `[]` |
+
+```yaml
+# Simple HTTPRoute (uses webservice.hosts)
+webservice:
+  image: myapp:latest
+  hosts:
+    - app.example.com
+  ingress:
+    enabled: false
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: main-gateway
+
+# HTTPRoute with TLS (auto-creates ListenerSet)
+webservice:
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: main-gateway
+    tls: true
+
+# Additional HTTPRoutes with custom hosts
+webservice:
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: public-gateway
+  additionalHttpRoutes:
+    - name: internal
+      parentRefs:
+        - name: internal-gateway
+      hosts:
+        - internal.example.com
+```
+
+### ListenerSet (Gateway API TLS)
+
+When `httpRoute.tls: true`, the chart auto-creates a ListenerSet that adds HTTPS listeners to the referenced Gateway for each host in `webservice.hosts`. Advanced configuration is available via `webservice.listenerSet`.
+
+> **Note**: ListenerSet uses `gateway.networking.k8s.io/v1` (ListenerSet) when available, falling back to `gateway.networking.x-k8s.io/v1alpha1` (XListenerSet) on older clusters.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webservice.listenerSet.gatewayRef` | Gateway to attach listeners to (defaults to `httpRoute.parentRefs[0]`) | `{}` |
+| `webservice.listenerSet.port` | Listener port | `443` |
+| `webservice.listenerSet.protocol` | Listener protocol | `HTTPS` |
+| `webservice.listenerSet.tls.mode` | TLS mode | `Terminate` |
+| `webservice.listenerSet.tls.certificateRefs` | Certificate references (defaults to `Secret/<fullname>-tls`) | `[]` |
+| `webservice.listenerSet.annotations` | ListenerSet annotations | `{}` |
+| `webservice.listenerSet.labels` | ListenerSet labels | `{}` |
+
+```yaml
+# Minimal TLS (all defaults)
+webservice:
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: main-gateway
+    tls: true
+  # Auto-creates ListenerSet:
+  #   - gatewayRef from httpRoute.parentRefs[0]
+  #   - certificateRef: Secret/<fullname>-tls
+
+# With cert-manager auto-provisioning
+webservice:
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: main-gateway
+    tls: true
+  listenerSet:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+
+# Custom TLS certificate
+webservice:
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: main-gateway
+    tls: true
+  listenerSet:
+    tls:
+      certificateRefs:
+        - kind: Secret
+          name: my-custom-cert
+```
+
+### Migrating from Ingress to Gateway API
+
+In Gateway API, cross-cutting concerns (timeouts, auth, rate limiting) move from per-route annotations to **Policy CRDs** managed alongside the Gateway infrastructure. TLS termination moves from per-Ingress config to **Gateway Listeners** (or **ListenerSet**).
+
+#### Proxy settings (timeouts, body size, buffering)
+
+**Before (Ingress + nginx annotations):**
+
+```yaml
+webservice:
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-next-upstream: "off"
+      nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+```
+
+**After (HTTPRoute + BackendTrafficPolicy):**
+
+Chart values:
+```yaml
+webservice:
+  ingress:
+    enabled: false
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: main-gateway
+```
+
+Policy to create alongside (Envoy Gateway example):
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: my-app-timeouts
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: my-app  # matches your release fullname
+  timeout:
+    http:
+      connectionIdleTimeout: 3600s
+      requestTimeout: 3600s
+  proxyProtocol:
+    requestBuffering:
+      disabled: true
+    maxRequestBodySize: 0  # unlimited
+```
+
+#### Basic authentication
+
+**Before (Ingress + nginx annotations):**
+
+```yaml
+webservice:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/auth-realm: Authentication Required
+      nginx.ingress.kubernetes.io/auth-secret: basic-auth
+      nginx.ingress.kubernetes.io/auth-type: basic
+```
+
+**After (HTTPRoute + SecurityPolicy):**
+
+Chart values:
+```yaml
+webservice:
+  ingress:
+    enabled: false
+  httpRoute:
+    enabled: true
+```
+
+Policy to create alongside (Envoy Gateway example):
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: my-app-basic-auth
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: my-app
+  basicAuth:
+    users:
+      name: basic-auth  # reference to existing Secret
+```
+
+#### TLS (tlsAcme)
+
+**Before (Ingress + tlsAcme):**
+
+```yaml
+webservice:
+  ingress:
+    enabled: true
+    tlsAcme: true
+```
+
+**After (HTTPRoute + TLS):**
+
+```yaml
+webservice:
+  ingress:
+    enabled: false
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: main-gateway
+    tls: true
+  # Auto-creates a ListenerSet with HTTPS listeners for each host
+  # certificateRefs defaults to Secret/<fullname>-tls
+```
 
 ### Resources & Probes
 
@@ -613,6 +841,23 @@ webservice:
     registry: registry.example.com
     username: myuser
     password: mypassword
+```
+
+### With Gateway API (HTTPRoute)
+
+```yaml
+webservice:
+  image: myapp:latest
+  hosts:
+    - app.example.com
+  ingress:
+    enabled: false
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: main-gateway
+        namespace: gateway-system
+    tls: true
 ```
 
 ### With init and sidecar containers

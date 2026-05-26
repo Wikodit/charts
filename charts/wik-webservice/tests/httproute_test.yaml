@@ -1,0 +1,228 @@
+suite: httproute tests
+templates:
+  - httproute.yaml
+tests:
+  - it: should not create an HTTPRoute when disabled
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create an HTTPRoute when enabled
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+    asserts:
+      - isKind:
+          of: HTTPRoute
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+
+  - it: should set parentRefs when specified
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          parentRefs:
+            - name: my-gateway
+              namespace: gateway-system
+    asserts:
+      - equal:
+          path: spec.parentRefs[0].name
+          value: my-gateway
+      - equal:
+          path: spec.parentRefs[0].namespace
+          value: gateway-system
+
+  - it: should omit parentRefs when empty
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          parentRefs: []
+    asserts:
+      - isNull:
+          path: spec.parentRefs
+
+  - it: should use hosts as hostnames
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+    asserts:
+      - equal:
+          path: spec.hostnames[0]
+          value: test.example.com
+
+  - it: should handle multiple hosts
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+          - api.example.com
+        httpRoute:
+          enabled: true
+    asserts:
+      - equal:
+          path: spec.hostnames[0]
+          value: test.example.com
+      - equal:
+          path: spec.hostnames[1]
+          value: api.example.com
+
+  - it: should set default backendRef to chart service
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        service:
+          port: 8080
+        httpRoute:
+          enabled: true
+    asserts:
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 8080
+
+  - it: should include annotations when specified
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          annotations:
+            test-annotation: my-value
+    asserts:
+      - equal:
+          path: metadata.annotations.test-annotation
+          value: my-value
+
+  - it: should include custom labels
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          labels:
+            routing: gateway-api
+    asserts:
+      - equal:
+          path: metadata.labels.routing
+          value: "gateway-api"
+
+  - it: should include filters on default rule
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: X-Test
+                    value: "true"
+    asserts:
+      - equal:
+          path: spec.rules[0].filters[0].type
+          value: RequestHeaderModifier
+
+  - it: should include additionalRules
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          additionalRules:
+            - matches:
+                - path:
+                    type: PathPrefix
+                    value: /api
+              backendRefs:
+                - name: api-service
+                  port: 8080
+    asserts:
+      - equal:
+          path: spec.rules[1].matches[0].path.value
+          value: /api
+
+  - it: should create additional HTTPRoutes
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: false
+        additionalHttpRoutes:
+          - name: internal
+            hosts:
+              - internal.example.com
+            parentRefs:
+              - name: internal-gateway
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HTTPRoute
+      - equal:
+          path: spec.hostnames[0]
+          value: internal.example.com
+
+  - it: should name additional HTTPRoutes with suffix
+    set:
+      webservice:
+        image: nginx:latest
+        additionalHttpRoutes:
+          - name: internal
+            hosts:
+              - internal.example.com
+    asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: -internal$
+
+  - it: should create both main and additional HTTPRoutes
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+        additionalHttpRoutes:
+          - name: internal
+            hosts:
+              - internal.example.com
+    asserts:
+      - hasDocuments:
+          count: 2

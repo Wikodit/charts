@@ -28,6 +28,24 @@ webservice:
     annotations:
       nginx.ingress.kubernetes.io/proxy-body-size: 200m
 
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: test-gateway
+        namespace: gateway-system
+    tls: true
+    annotations:
+      example.com/test: "true"
+    labels:
+      routing: gateway-api
+
+  additionalHttpRoutes:
+    - name: internal
+      parentRefs:
+        - name: internal-gateway
+      hosts:
+        - internal.example.com
+
   additionalLabels:
     app.kubernetes.io/component: frontend
 
