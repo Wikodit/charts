@@ -2,8 +2,8 @@ apiVersion: v2
 name: wik-webservice
 description: Quick start for a all-in-one webservice
 type: application
-version: 0.6.0
-appVersion: "0.6.0"
+version: 0.6.1
+appVersion: "0.6.1"
 home: https://github.com/wikodit/charts
 sources:
   - https://github.com/wikodit/charts

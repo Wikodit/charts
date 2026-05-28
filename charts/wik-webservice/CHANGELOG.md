@@ -1,4 +1,15 @@
 
+## [wik-webservice-v0.6.1](https://github.com/wikodit/charts/compare/wik-webservice-v0.6.0...wik-webservice-v0.6.1) - 2026-05-28
+
+### Bug Fixes
+
+* **wik-webservice:** for httproute, reuse same default tls name as ingress one
+
+### Chores
+
+* **wik-webservice:** release v0.6.0 [skip ci]
+
+
 ## [wik-webservice-v0.6.0](https://github.com/wikodit/charts/compare/wik-webservice-v0.5.0...wik-webservice-v0.6.0) - 2026-05-26
 
 ### Bug Fixes
@@ -8,6 +19,10 @@
 ### Chores
 
 * **wik-webservice:** release v0.5.0 [skip ci]
+
+### Documentation
+
+* auto-generate chart documentation
 
 ### Features
 
