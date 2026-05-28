@@ -128,7 +128,7 @@ When `httpRoute.tls: true`, the chart auto-creates a ListenerSet that adds HTTPS
 | `webservice.listenerSet.port` | Listener port | `443` |
 | `webservice.listenerSet.protocol` | Listener protocol | `HTTPS` |
 | `webservice.listenerSet.tls.mode` | TLS mode | `Terminate` |
-| `webservice.listenerSet.tls.certificateRefs` | Certificate references (defaults to `Secret/<fullname>-tls`) | `[]` |
+| `webservice.listenerSet.tls.certificateRefs` | Certificate references (defaults to `Secret/<fullname>--tls`) | `[]` |
 | `webservice.listenerSet.annotations` | ListenerSet annotations | `{}` |
 | `webservice.listenerSet.labels` | ListenerSet labels | `{}` |
 
@@ -142,7 +142,7 @@ webservice:
     tls: true
   # Auto-creates ListenerSet:
   #   - gatewayRef from httpRoute.parentRefs[0]
-  #   - certificateRef: Secret/<fullname>-tls
+  #   - certificateRef: Secret/<fullname>--tls
 
 # With cert-manager auto-provisioning
 webservice:
@@ -289,7 +289,7 @@ webservice:
       - name: main-gateway
     tls: true
   # Auto-creates a ListenerSet with HTTPS listeners for each host
-  # certificateRefs defaults to Secret/<fullname>-tls
+  # certificateRefs defaults to Secret/<fullname>--tls
 ```
 
 ### Resources & Probes
