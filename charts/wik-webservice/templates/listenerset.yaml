@@ -51,7 +51,7 @@ spec:
 {{ toYaml $root.Values.webservice.listenerSet.tls.certificateRefs | indent 10 }}
         {{- else }}
           - kind: Secret
-            name: {{ template "fullname" $root }}-tls
+            name: {{ template "fullname" $root }}--tls
         {{- end }}
     {{- end }}
 {{- end }}

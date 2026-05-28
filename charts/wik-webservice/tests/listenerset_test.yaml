@@ -142,7 +142,7 @@ tests:
           value: Secret
       - matchRegex:
           path: spec.listeners[0].tls.certificateRefs[0].name
-          pattern: -tls$
+          pattern: --tls$
 
   - it: should use custom certificateRefs when specified
     set:

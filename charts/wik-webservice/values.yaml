@@ -211,7 +211,7 @@ webservice:
     # TLS configuration
     tls:
       mode: Terminate
-      # Certificate references. If empty, auto-generates: Secret named <fullname>-tls
+      # Certificate references. If empty, auto-generates: Secret named <fullname>--tls
       certificateRefs: []
         # - kind: Secret
         #   name: my-tls-secret
