@@ -17,9 +17,19 @@ metadata:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
-{{- with .Values.webservice.httpRoute.parentRefs }}
+{{- with .Values.webservice.httpRoute.gatewayRef }}
+{{- if .name }}
   parentRefs:
-{{ toYaml . | indent 4 }}
+    - name: {{ .name }}
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
+  {{- if $root.Values.webservice.httpRoute.tls }}
+    - group: gateway.networking.k8s.io
+      kind: Listener
+      name: {{ template "fullname" $root }}
+  {{- end }}
+{{- end }}
 {{- end }}
 {{- if .Values.webservice.hosts }}
   hostnames:

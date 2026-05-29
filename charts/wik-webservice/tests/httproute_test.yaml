@@ -28,7 +28,7 @@ tests:
       - isAPIVersion:
           of: gateway.networking.k8s.io/v1
 
-  - it: should set parentRefs when specified
+  - it: should set parentRef from gatewayRef
     set:
       webservice:
         image: nginx:latest
@@ -36,9 +36,9 @@ tests:
           - test.example.com
         httpRoute:
           enabled: true
-          parentRefs:
-            - name: my-gateway
-              namespace: gateway-system
+          gatewayRef:
+            name: my-gateway
+            namespace: gateway-system
     asserts:
       - equal:
           path: spec.parentRefs[0].name
@@ -47,7 +47,7 @@ tests:
           path: spec.parentRefs[0].namespace
           value: gateway-system
 
-  - it: should omit parentRefs when empty
+  - it: should omit parentRefs when no gatewayRef and no tls
     set:
       webservice:
         image: nginx:latest
@@ -55,10 +55,26 @@ tests:
           - test.example.com
         httpRoute:
           enabled: true
-          parentRefs: []
+          tls: false
+          gatewayRef: {}
     asserts:
       - isNull:
           path: spec.parentRefs
+
+  - it: should add Listener parentRef when tls is true
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          gatewayRef:
+            name: my-gateway
+    asserts:
+      - equal:
+          path: spec.parentRefs[1].kind
+          value: Listener
 
   - it: should use hosts as hostnames
     set:

@@ -100,7 +100,7 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "default": true
+              "default": false
             },
             "className": {
               "type": "string"
@@ -122,23 +122,17 @@
               "type": "boolean",
               "default": false
             },
-            "parentRefs": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": ["name"],
-                "properties": {
-                  "name": { "type": "string" },
-                  "namespace": { "type": "string" },
-                  "sectionName": { "type": "string" },
-                  "port": { "type": "integer" }
-                }
+            "gatewayRef": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "namespace": { "type": "string" }
               },
-              "default": []
+              "default": {}
             },
             "tls": {
               "type": "boolean",
-              "default": false
+              "default": true
             },
             "annotations": {
               "type": "object",
@@ -209,13 +203,6 @@
         "listenerSet": {
           "type": "object",
           "properties": {
-            "gatewayRef": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string" },
-                "namespace": { "type": "string" }
-              }
-            },
             "port": {
               "type": "integer",
               "default": 443

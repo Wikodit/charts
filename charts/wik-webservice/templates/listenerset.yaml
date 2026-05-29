@@ -3,10 +3,13 @@
 {{- if .Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1/ListenerSet" }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: ListenerSet
-{{- else }}
+{{- else if .Capabilities.APIVersions.Has "gateway.networking.x-k8s.io/v1alpha1/XListenerSet" }}
 apiVersion: gateway.networking.x-k8s.io/v1alpha1
 kind: XListenerSet
+{{- else }}
+{{- /* ListenerSet CRDs not available on cluster, silently skip */ -}}
 {{- end }}
+{{- if or (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1/ListenerSet") (.Capabilities.APIVersions.Has "gateway.networking.x-k8s.io/v1alpha1/XListenerSet") }}
 metadata:
   name: {{ template "fullname" . }}
   labels:
@@ -25,18 +28,13 @@ spec:
   parentRef:
     group: gateway.networking.k8s.io
     kind: Gateway
-    {{- if .Values.webservice.listenerSet.gatewayRef.name }}
-    name: {{ .Values.webservice.listenerSet.gatewayRef.name }}
-    {{- with .Values.webservice.listenerSet.gatewayRef.namespace }}
-    namespace: {{ . }}
-    {{- end }}
-    {{- else if .Values.webservice.httpRoute.parentRefs }}
-    name: {{ (index .Values.webservice.httpRoute.parentRefs 0).name }}
-    {{- with (index .Values.webservice.httpRoute.parentRefs 0).namespace }}
+    {{- if .Values.webservice.httpRoute.gatewayRef.name }}
+    name: {{ .Values.webservice.httpRoute.gatewayRef.name }}
+    {{- with .Values.webservice.httpRoute.gatewayRef.namespace }}
     namespace: {{ . }}
     {{- end }}
     {{- else }}
-    {{- fail "httpRoute.tls requires either listenerSet.gatewayRef.name or httpRoute.parentRefs to be set" }}
+    {{- fail "httpRoute.tls requires httpRoute.gatewayRef.name to be set" }}
     {{- end }}
   listeners:
     {{- range .Values.webservice.hosts }}
@@ -54,4 +52,5 @@ spec:
             name: {{ template "fullname" $root }}--tls
         {{- end }}
     {{- end }}
+{{- end }}
 {{- end }}

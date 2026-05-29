@@ -18,6 +18,18 @@ It creates:
 - **ListenerSet** for automatic TLS listener provisioning (Gateway API)
 - **PVC** for persistent storage
 
+## Breaking Changes
+
+### 0.7.0
+
+- **`webservice.ingress.enabled` now defaults to `false`** (was `true`).
+  If you rely on Ingress, explicitly set `webservice.ingress.enabled: true` in your values.
+- **`webservice.httpRoute.tls` now defaults to `true`**.
+  A ListenerSet is auto-created when Gateway API ListenerSet CRDs are available on the cluster.
+  Silently skipped if the CRDs are absent.
+- **`webservice.httpRoute.parentRefs` replaced by `webservice.httpRoute.gatewayRef`**.
+  Single object instead of array. For multi-gateway routing, use `additionalHttpRoutes`.
+
 ## Installation
 
 ```bash
@@ -73,8 +85,8 @@ The chart supports [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute as 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `webservice.httpRoute.enabled` | Create an HTTPRoute | `false` |
-| `webservice.httpRoute.parentRefs` | Gateway parent references (omitted if empty) | `[]` |
-| `webservice.httpRoute.tls` | Auto-create a ListenerSet for TLS (like `ingress.tlsAcme`) | `false` |
+| `webservice.httpRoute.gatewayRef` | Gateway reference (`name`, `namespace`). Omitted if empty | `{}` |
+| `webservice.httpRoute.tls` | Auto-create a ListenerSet for TLS (like `ingress.tlsAcme`). Skipped if CRDs absent | `true` |
 | `webservice.httpRoute.annotations` | HTTPRoute annotations | `{}` |
 | `webservice.httpRoute.labels` | HTTPRoute labels | `{}` |
 | `webservice.httpRoute.filters` | Filters for the default rule | `[]` |
@@ -83,31 +95,23 @@ The chart supports [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute as 
 
 ```yaml
 # Simple HTTPRoute (uses webservice.hosts)
+# TLS is enabled by default and auto-creates a ListenerSet
 webservice:
   image: myapp:latest
   hosts:
     - app.example.com
-  ingress:
-    enabled: false
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: main-gateway
-
-# HTTPRoute with TLS (auto-creates ListenerSet)
-webservice:
-  httpRoute:
-    enabled: true
-    parentRefs:
-      - name: main-gateway
-    tls: true
+    gatewayRef:
+      name: main-gateway
+      namespace: gateway
 
 # Additional HTTPRoutes with custom hosts
 webservice:
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: public-gateway
+    gatewayRef:
+      name: public-gateway
   additionalHttpRoutes:
     - name: internal
       parentRefs:
@@ -124,7 +128,6 @@ When `httpRoute.tls: true`, the chart auto-creates a ListenerSet that adds HTTPS
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `webservice.listenerSet.gatewayRef` | Gateway to attach listeners to (defaults to `httpRoute.parentRefs[0]`) | `{}` |
 | `webservice.listenerSet.port` | Listener port | `443` |
 | `webservice.listenerSet.protocol` | Listener protocol | `HTTPS` |
 | `webservice.listenerSet.tls.mode` | TLS mode | `Terminate` |
@@ -137,20 +140,19 @@ When `httpRoute.tls: true`, the chart auto-creates a ListenerSet that adds HTTPS
 webservice:
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: main-gateway
-    tls: true
+    gatewayRef:
+      name: main-gateway
+    # tls: true is the default
   # Auto-creates ListenerSet:
-  #   - gatewayRef from httpRoute.parentRefs[0]
+  #   - uses httpRoute.gatewayRef as gateway target
   #   - certificateRef: Secret/<fullname>--tls
 
 # With cert-manager auto-provisioning
 webservice:
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: main-gateway
-    tls: true
+    gatewayRef:
+      name: main-gateway
   listenerSet:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -159,9 +161,8 @@ webservice:
 webservice:
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: main-gateway
-    tls: true
+    gatewayRef:
+      name: main-gateway
   listenerSet:
     tls:
       certificateRefs:
@@ -200,8 +201,8 @@ webservice:
     enabled: false
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: main-gateway
+    gatewayRef:
+      name: main-gateway
 ```
 
 Policy to create alongside (Envoy Gateway example):
@@ -285,9 +286,9 @@ webservice:
     enabled: false
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: main-gateway
-    tls: true
+    gatewayRef:
+      name: main-gateway
+    # tls: true is the default
   # Auto-creates a ListenerSet with HTTPS listeners for each host
   # certificateRefs defaults to Secret/<fullname>--tls
 ```
@@ -854,10 +855,9 @@ webservice:
     enabled: false
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: main-gateway
-        namespace: gateway-system
-    tls: true
+    gatewayRef:
+      name: main-gateway
+      namespace: gateway-system
 ```
 
 ### With init and sidecar containers

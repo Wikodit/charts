@@ -154,7 +154,7 @@ webservice:
     path: /metrics
 
   ingress:
-    enabled: true
+    enabled: false
     className: ""
       # nginx, traefik, etc.
     tlsAcme: true
@@ -167,16 +167,15 @@ webservice:
   # Gateway API HTTPRoute configuration
   httpRoute:
     enabled: false
-    # Parent gateway references (omitted if empty, letting the gateway implementation auto-attach)
-    parentRefs: []
-      # - name: my-gateway
-      #   namespace: gateway-system
-      #   sectionName: https
-      #   port: 443
+    # Gateway to attach the HTTPRoute to (also used by ListenerSet when tls: true)
+    # If empty, the HTTPRoute has no parentRefs (relies on gateway auto-attach)
+    gatewayRef: {}
+      # name: my-gateway
+      # namespace: gateway-system
     # Enable TLS via auto-created ListenerSet (like tlsAcme for Ingress)
     # Creates HTTPS listeners on the gateway for each host in webservice.hosts
-    # ⚠️ Uses ListenerSet / XListenerSet (experimental in Gateway API < v1.5)
-    tls: false
+    # Silently skipped if ListenerSet/XListenerSet CRDs are not available on the cluster
+    tls: true
     annotations: {}
     labels: {}
     # Filters applied to the default rule (e.g. RequestHeaderModifier, RequestRedirect)
@@ -198,12 +197,8 @@ webservice:
 
   # Advanced ListenerSet configuration (overrides httpRoute.tls defaults)
   # Only needed for custom port, protocol, certificateRefs, etc.
-  # ⚠️ Uses ListenerSet / XListenerSet (experimental in Gateway API < v1.5)
+  # Uses ListenerSet / XListenerSet (experimental in Gateway API < v1.5)
   listenerSet:
-    # Gateway to attach listeners to (defaults to httpRoute.parentRefs[0])
-    gatewayRef: {}
-      # name: my-gateway
-      # namespace: gateway-system
     # Listener port
     port: 443
     # Listener protocol

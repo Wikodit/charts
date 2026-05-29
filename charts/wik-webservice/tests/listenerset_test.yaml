@@ -1,6 +1,9 @@
 suite: listenerset tests
 templates:
   - listenerset.yaml
+capabilities:
+  apiVersions:
+    - gateway.networking.x-k8s.io/v1alpha1/XListenerSet
 tests:
   - it: should not create a ListenerSet when tls is false
     set:
@@ -24,13 +27,13 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
+          gatewayRef:
+            name: my-gateway
     asserts:
       - hasDocuments:
           count: 1
 
-  - it: should use httpRoute parentRefs as default gatewayRef
+  - it: should use gatewayRef for parentRef
     set:
       webservice:
         image: nginx:latest
@@ -39,9 +42,9 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
-              namespace: gateway-system
+          gatewayRef:
+            name: my-gateway
+            namespace: gateway-system
     asserts:
       - equal:
           path: spec.parentRef.name
@@ -50,7 +53,7 @@ tests:
           path: spec.parentRef.namespace
           value: gateway-system
 
-  - it: should use explicit gatewayRef over parentRefs
+  - it: should fail when tls is true but no gatewayRef
     set:
       webservice:
         image: nginx:latest
@@ -59,35 +62,10 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
-        listenerSet:
-          gatewayRef:
-            name: other-gateway
-            namespace: other-ns
-    asserts:
-      - equal:
-          path: spec.parentRef.name
-          value: other-gateway
-      - equal:
-          path: spec.parentRef.namespace
-          value: other-ns
-
-  - it: should fail when tls is true but no parentRefs and no gatewayRef
-    set:
-      webservice:
-        image: nginx:latest
-        hosts:
-          - test.example.com
-        httpRoute:
-          enabled: true
-          tls: true
-          parentRefs: []
-        listenerSet:
           gatewayRef: {}
     asserts:
       - failedTemplate:
-          errorMessage: "httpRoute.tls requires either listenerSet.gatewayRef.name or httpRoute.parentRefs to be set"
+          errorMessage: "httpRoute.tls requires httpRoute.gatewayRef.name to be set"
 
   - it: should create one listener per host
     set:
@@ -99,8 +77,8 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
+          gatewayRef:
+            name: my-gateway
     asserts:
       - equal:
           path: spec.listeners[0].hostname
@@ -118,8 +96,8 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
+          gatewayRef:
+            name: my-gateway
     asserts:
       - equal:
           path: spec.listeners[0].name
@@ -134,8 +112,8 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
+          gatewayRef:
+            name: my-gateway
     asserts:
       - equal:
           path: spec.listeners[0].tls.certificateRefs[0].kind
@@ -153,8 +131,8 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
+          gatewayRef:
+            name: my-gateway
         listenerSet:
           tls:
             mode: Terminate
@@ -175,8 +153,8 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
+          gatewayRef:
+            name: my-gateway
         listenerSet:
           port: 8443
           protocol: HTTPS
@@ -194,8 +172,8 @@ tests:
         httpRoute:
           enabled: true
           tls: true
-          parentRefs:
-            - name: my-gateway
+          gatewayRef:
+            name: my-gateway
         listenerSet:
           annotations:
             test-annotation: my-value
@@ -203,3 +181,20 @@ tests:
       - equal:
           path: metadata.annotations.test-annotation
           value: my-value
+
+  - it: should render as XListenerSet with experimental API
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          tls: true
+          gatewayRef:
+            name: my-gateway
+    asserts:
+      - isKind:
+          of: XListenerSet
+      - isAPIVersion:
+          of: gateway.networking.x-k8s.io/v1alpha1

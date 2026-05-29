@@ -30,9 +30,9 @@ webservice:
 
   httpRoute:
     enabled: true
-    parentRefs:
-      - name: test-gateway
-        namespace: gateway-system
+    gatewayRef:
+      name: test-gateway
+      namespace: gateway-system
     tls: true
     annotations:
       example.com/test: "true"
