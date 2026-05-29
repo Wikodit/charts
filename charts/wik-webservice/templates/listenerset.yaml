@@ -1,5 +1,5 @@
 {{ $root := . }}
-{{- if .Values.webservice.httpRoute.tls -}}
+{{- if and .Values.webservice.httpRoute.enabled .Values.webservice.httpRoute.tls -}}
 {{- if .Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1/ListenerSet" }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: ListenerSet
