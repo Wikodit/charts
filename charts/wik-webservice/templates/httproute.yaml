@@ -25,10 +25,10 @@ spec:
       kind: Listener
       name: {{ template "fullname" $root }}
   {{- end }}
-  - name: {{ .name }}
-    {{- with .namespace }}
-    namespace: {{ . }}
-    {{- end }}
+    - name: {{ .name }}
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
 {{- end }}
 {{- end }}
 {{- if .Values.webservice.hosts }}
