@@ -1,4 +1,15 @@
 
+## [wik-webservice-v0.7.3](https://github.com/wikodit/charts/compare/wik-webservice-v0.7.2...wik-webservice-v0.7.3) - 2026-05-29
+
+### Bug Fixes
+
+* **wik-webservice:** Listener instead of ListenerSet
+
+### Chores
+
+* **wik-webservice:** release v0.7.2 [skip ci]
+
+
 ## [wik-webservice-v0.7.2](https://github.com/wikodit/charts/compare/wik-webservice-v0.7.1...wik-webservice-v0.7.2) - 2026-05-29
 
 ### Bug Fixes
