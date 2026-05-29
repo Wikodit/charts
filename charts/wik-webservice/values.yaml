@@ -176,6 +176,8 @@ webservice:
     # Creates HTTPS listeners on the gateway for each host in webservice.hosts
     # Silently skipped if ListenerSet/XListenerSet CRDs are not available on the cluster
     tls: true
+    # When tls is true, also add the Gateway itself as a parentRef (in addition to the ListenerSet)
+    addGatewayParentRef: false
     annotations: {}
     labels: {}
     # Filters applied to the default rule (e.g. RequestHeaderModifier, RequestRedirect)

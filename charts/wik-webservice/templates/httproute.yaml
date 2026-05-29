@@ -30,11 +30,18 @@ spec:
       kind: XListenerSet
       name: {{ template "fullname" $root }}
   {{- end }}
-  {{- end }}
+  {{- if $root.Values.webservice.httpRoute.addGatewayParentRef }}
     - name: {{ .name }}
       {{- with .namespace }}
       namespace: {{ . }}
       {{- end }}
+  {{- end }}
+  {{- else }}
+    - name: {{ .name }}
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
+  {{- end }}
 {{- end }}
 {{- end }}
 {{- if .Values.webservice.hosts }}

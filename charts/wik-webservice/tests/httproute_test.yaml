@@ -62,7 +62,7 @@ tests:
       - isNull:
           path: spec.parentRefs
 
-  - it: should add Listener parentRef when tls is true
+  - it: should only have ListenerSet parentRef when tls is true
     set:
       webservice:
         image: nginx:latest
@@ -72,6 +72,25 @@ tests:
           enabled: true
           gatewayRef:
             name: my-gateway
+    asserts:
+      - equal:
+          path: spec.parentRefs[0].kind
+          value: XListenerSet
+      - lengthEqual:
+          path: spec.parentRefs
+          count: 1
+
+  - it: should add gateway parentRef when addGatewayParentRef is true
+    set:
+      webservice:
+        image: nginx:latest
+        hosts:
+          - test.example.com
+        httpRoute:
+          enabled: true
+          gatewayRef:
+            name: my-gateway
+          addGatewayParentRef: true
     asserts:
       - equal:
           path: spec.parentRefs[0].kind

@@ -134,6 +134,10 @@
               "type": "boolean",
               "default": true
             },
+            "addGatewayParentRef": {
+              "type": "boolean",
+              "default": false
+            },
             "annotations": {
               "type": "object",
               "default": {}

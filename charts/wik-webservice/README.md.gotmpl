@@ -87,6 +87,7 @@ The chart supports [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute as 
 | `webservice.httpRoute.enabled` | Create an HTTPRoute | `false` |
 | `webservice.httpRoute.gatewayRef` | Gateway reference (`name`, `namespace`). Omitted if empty | `{}` |
 | `webservice.httpRoute.tls` | Auto-create a ListenerSet for TLS (like `ingress.tlsAcme`). Skipped if CRDs absent | `true` |
+| `webservice.httpRoute.addGatewayParentRef` | When `tls: true`, also add the Gateway as a parentRef (in addition to the ListenerSet) | `false` |
 | `webservice.httpRoute.annotations` | HTTPRoute annotations | `{}` |
 | `webservice.httpRoute.labels` | HTTPRoute labels | `{}` |
 | `webservice.httpRoute.filters` | Filters for the default rule | `[]` |
@@ -94,8 +95,8 @@ The chart supports [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute as 
 | `webservice.additionalHttpRoutes` | Additional HTTPRoute resources with custom hosts | `[]` |
 
 ```yaml
-# Simple HTTPRoute (uses webservice.hosts)
-# TLS is enabled by default and auto-creates a ListenerSet
+# Simple HTTPRoute with TLS (default)
+# The ListenerSet is the only parentRef, Gateway is referenced via the ListenerSet
 webservice:
   image: myapp:latest
   hosts:
@@ -105,6 +106,22 @@ webservice:
     gatewayRef:
       name: main-gateway
       namespace: gateway
+
+# Also add the Gateway as a parentRef (if needed by your implementation)
+webservice:
+  httpRoute:
+    enabled: true
+    gatewayRef:
+      name: main-gateway
+    addGatewayParentRef: true
+
+# Without TLS — Gateway is the only parentRef
+webservice:
+  httpRoute:
+    enabled: true
+    tls: false
+    gatewayRef:
+      name: main-gateway
 
 # Additional HTTPRoutes with custom hosts
 webservice:
