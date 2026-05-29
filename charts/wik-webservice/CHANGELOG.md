@@ -1,4 +1,15 @@
 
+## [wik-webservice-v0.7.1](https://github.com/wikodit/charts/compare/wik-webservice-v0.7.0...wik-webservice-v0.7.1) - 2026-05-29
+
+### Bug Fixes
+
+* **wik-webservice:** parentRefs for route order
+
+### Chores
+
+* **wik-webservice:** release v0.7.0 [skip ci]
+
+
 ## [wik-webservice-v0.7.0](https://github.com/wikodit/charts/compare/wik-webservice-v0.6.1...wik-webservice-v0.7.0) - 2026-05-29
 
 ### Chores
