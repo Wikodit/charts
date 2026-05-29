@@ -21,9 +21,15 @@ spec:
 {{- if .name }}
   parentRefs:
   {{- if $root.Values.webservice.httpRoute.tls }}
+  {{- if $root.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1/ListenerSet" }}
     - group: gateway.networking.k8s.io
-      kind: Listener
+      kind: ListenerSet
       name: {{ template "fullname" $root }}
+  {{- else }}
+    - group: gateway.networking.x-k8s.io
+      kind: XListenerSet
+      name: {{ template "fullname" $root }}
+  {{- end }}
   {{- end }}
     - name: {{ .name }}
       {{- with .namespace }}
