@@ -1,6 +1,6 @@
 # wik-webservice
 
-![Version: 0.7.5](https://img.shields.io/badge/Version-0.7.5-informational?style=flat-square)
+![Version: 0.7.6](https://img.shields.io/badge/Version-0.7.6-informational?style=flat-square)
 ![Chart](https://img.shields.io/badge/Chart-wik--webservice-blue?style=flat-square)
 
 ## Introduction

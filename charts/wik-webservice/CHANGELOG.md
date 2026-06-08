@@ -1,4 +1,15 @@
 
+## [wik-webservice-v0.7.6](https://github.com/wikodit/charts/compare/wik-webservice-v0.7.5...wik-webservice-v0.7.6) - 2026-06-08
+
+### Bug Fixes
+
+* **wik-webservice:** add option securityDefaults
+
+### Chores
+
+* **wik-webservice:** release v0.7.5 [skip ci]
+
+
 ## [wik-webservice-v0.7.5](https://github.com/wikodit/charts/compare/wik-webservice-v0.7.4...wik-webservice-v0.7.5) - 2026-05-29
 
 ### Bug Fixes
