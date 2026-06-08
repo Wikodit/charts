@@ -327,8 +327,9 @@ webservice:
 | `serviceAccount.name` | ServiceAccount name to use | `""` (default) |
 | `serviceAccount.annotations` | ServiceAccount annotations | `{}` |
 | `serviceAccount.automountServiceAccountToken` | Mount service account token (when creating SA) | `true` |
-| `webservice.securityContext` | Pod-level security context | `{}` |
-| `webservice.containerSecurityContext` | Container-level security context | `{}` |
+| `webservice.securityDefaults` | Apply hardened pod & container security defaults (merged with user overrides) | `true` |
+| `webservice.securityContext` | Pod-level security context (merged on top of defaults) | `{}` |
+| `webservice.containerSecurityContext` | Container-level security context (merged on top of defaults) | `{}` |
 | `webservice.enableServiceLinks` | Enable service links injection | `false` |
 | `webservice.hostNetwork` | Access host network namespace | `false` |
 | `webservice.hostPID` | Access host PID namespace | `false` |
@@ -692,7 +693,7 @@ This chart includes secure defaults that can be overridden as needed:
 
 ### Security Context Defaults
 
-By default, pods run with the following security settings:
+When `webservice.securityDefaults` is `true` (the default), the chart renders the following baseline:
 
 ```yaml
 # Pod Security Context
@@ -712,20 +713,49 @@ securityContext:
       - ALL
   seccompProfile:
     type: RuntimeDefault
+```
 
-To override these defaults, set `webservice.securityContext` or `webservice.containerSecurityContext`:
+`webservice.securityContext` and `webservice.containerSecurityContext` are merged **on top** of those defaults — user keys win, unset keys keep the default. So a partial override works as you'd expect:
 
 ```yaml
 webservice:
   securityContext:
-    runAsUser: 2000
-    fsGroup: 2000
+    runAsUser: 2000          # overrides the default 1000
+    fsGroup: 2000            # overrides the default 1000
+    # runAsNonRoot: true     # still applied from the defaults
   containerSecurityContext:
     readOnlyRootFilesystem: false
     seccompProfile:
       type: Localhost
       localhostProfile: "profiles/custom.json"
 ```
+
+#### Disabling the defaults (root user, writable filesystem, …)
+
+Setting `securityContext: {}` / `containerSecurityContext: {}` is **not enough** to opt out — they're already `{}` by default, and the defaults still render on top. Use `securityDefaults: false` to start from a clean slate (no `securityContext` block emitted at all → root user, writable rootfs, default caps):
+
+```yaml
+webservice:
+  securityDefaults: false
+```
+
+You can still selectively add fields on top — e.g. run as root without forcing any other hardening:
+
+```yaml
+webservice:
+  securityDefaults: false
+  containerSecurityContext:
+    runAsUser: 0
+```
+
+#### Pod-level vs container-level — why both?
+
+Kubernetes lets several fields (`runAsUser`, `runAsGroup`, `runAsNonRoot`, `seccompProfile`, `seLinuxOptions`) live at **either** level. Container-level wins; pod-level acts as the default for every container in the pod (main, sidecars from `additionalContainers`, init containers). The other fields are scoped:
+
+- **Pod-only** (volume/kernel attrs shared across the pod): `fsGroup`, `fsGroupChangePolicy`, `supplementalGroups`, `sysctls`
+- **Container-only** (per-process kernel attrs): `allowPrivilegeEscalation`, `capabilities`, `privileged`, `readOnlyRootFilesystem`, `procMount`
+
+The defaults set `runAsUser` / `runAsNonRoot` at both levels on purpose — pod-level covers any sidecar you add via `additionalContainers`, container-level locks the main container.
 
 ### Resource Defaults
 
@@ -990,6 +1020,7 @@ webservice:
 | webservice.resources | object | `{}` |  |
 | webservice.revisionHistoryLimit | string | `""` |  |
 | webservice.securityContext | object | `{}` |  |
+| webservice.securityDefaults | bool | `true` |  |
 | webservice.service.annotations | object | `{}` |  |
 | webservice.service.enabled | bool | `true` |  |
 | webservice.service.port | int | `80` |  |

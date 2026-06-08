@@ -61,3 +61,63 @@ tests:
       - equal:
           path: spec.template.spec.securityContext.fsGroup
           value: 1000
+
+  - it: should merge user securityContext on top of hardened defaults
+    set:
+      webservice.image: nginx:latest
+      webservice.securityContext:
+        runAsUser: 2000
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 2000
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+
+  - it: should merge user containerSecurityContext on top of hardened defaults
+    set:
+      webservice.image: nginx:latest
+      webservice.containerSecurityContext:
+        readOnlyRootFilesystem: false
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop[0]
+          value: ALL
+
+  - it: should omit securityContext entirely when securityDefaults is false and no override is set
+    set:
+      webservice.image: nginx:latest
+      webservice.securityDefaults: false
+    asserts:
+      - isNull:
+          path: spec.template.spec.securityContext
+      - isNull:
+          path: spec.template.spec.containers[0].securityContext
+
+  - it: should allow running as root with writable rootfs by disabling securityDefaults
+    set:
+      webservice.image: nginx:latest
+      webservice.securityDefaults: false
+      webservice.containerSecurityContext:
+        runAsUser: 0
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 0
+      - isNull:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+      - isNull:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot

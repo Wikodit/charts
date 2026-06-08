@@ -58,13 +58,16 @@ spec:
       hostAliases:
 {{ .Values.webservice.hostAliases | toYaml | indent 8 }}
 {{ end }}
-      securityContext:
+{{- $podSec := dict }}
+{{- if .Values.webservice.securityDefaults }}
+{{- $podSec = dict "fsGroup" 1000 "runAsNonRoot" true "runAsUser" 1000 }}
+{{- end }}
 {{- if .Values.webservice.securityContext }}
-{{ .Values.webservice.securityContext | toYaml | indent 8 }}
-{{- else }}
-        fsGroup: 1000
-        runAsNonRoot: true
-        runAsUser: 1000
+{{- $podSec = mustMergeOverwrite $podSec (deepCopy .Values.webservice.securityContext) }}
+{{- end }}
+{{- if $podSec }}
+      securityContext:
+{{ $podSec | toYaml | indent 8 }}
 {{- end }}
 {{ if .Values.webservice.dnsConfig }}
       dnsConfig:
@@ -76,19 +79,23 @@ spec:
       containers:
         - name: {{ template "fullname" . }}
           image: {{ .Values.webservice.image }}
-          securityContext:
+{{- $ctrSec := dict }}
+{{- if .Values.webservice.securityDefaults }}
+{{- $ctrSec = dict
+    "runAsNonRoot" true
+    "runAsUser" 1000
+    "allowPrivilegeEscalation" false
+    "readOnlyRootFilesystem" true
+    "capabilities" (dict "drop" (list "ALL"))
+    "seccompProfile" (dict "type" "RuntimeDefault")
+}}
+{{- end }}
 {{- if .Values.webservice.containerSecurityContext }}
-{{ .Values.webservice.containerSecurityContext | toYaml | indent 12 }}
-{{- else }}
-            runAsNonRoot: true
-            runAsUser: 1000
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
-            seccompProfile:
-              type: RuntimeDefault
+{{- $ctrSec = mustMergeOverwrite $ctrSec (deepCopy .Values.webservice.containerSecurityContext) }}
+{{- end }}
+{{- if $ctrSec }}
+          securityContext:
+{{ $ctrSec | toYaml | indent 12 }}
 {{- end }}
           imagePullPolicy: {{ .Values.webservice.imagePullPolicy }}
           ports:

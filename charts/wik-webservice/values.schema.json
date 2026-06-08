@@ -259,6 +259,10 @@
             "type": "object"
           }
         },
+        "securityDefaults": {
+          "type": "boolean",
+          "default": true
+        },
         "securityContext": {
           "type": "object",
           "default": {}

@@ -245,7 +245,14 @@ webservice:
     #     plaintext:
     #       INIT_VAR: value
 
-  # Pod-level security context
+  # Apply hardened security context defaults at the pod and container level.
+  # When true, the chart renders the defaults documented in the README and
+  # merges `securityContext` / `containerSecurityContext` on top (user values win).
+  # Set to false to start from an empty context (e.g. to run as root or with a
+  # writable root filesystem) — then opt back in only to the fields you want.
+  securityDefaults: true
+
+  # Pod-level security context (merged on top of defaults when securityDefaults: true)
   securityContext: {}
     # runAsUser: 1000
     # runAsGroup: 1000
@@ -259,7 +266,7 @@ webservice:
   # Enable service links (injects all services as environment variables)
   enableServiceLinks: false
 
-  # Container-level security context
+  # Container-level security context (merged on top of defaults when securityDefaults: true)
   containerSecurityContext: {}
     # allowPrivilegeEscalation: false
     # readOnlyRootFilesystem: true
