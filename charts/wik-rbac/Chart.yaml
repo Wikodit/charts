@@ -4,11 +4,9 @@ description: Install rbac-manager and deal with users, roles and namespaces
 type: application
 version: 0.1.1
 appVersion: "0.1.1"
-
 home: https://github.com/wikodit/charts
 sources:
   - https://github.com/wikodit/charts
-
 maintainers:
   - name: Wikodit
     url: https://github.com/wikodit
@@ -16,13 +14,11 @@ maintainers:
     email: anthony@wikodit.fr
   - name: Jeremy Trufier
     email: jeremy@wikodit.fr
-
 keywords:
   - wikodit
   - rbac
   - security
   - users
   - roles
-
 annotations:
   artifacthub.io/license: MIT
