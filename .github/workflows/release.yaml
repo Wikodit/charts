@@ -119,21 +119,25 @@ jobs:
         run: |
           CHART_PATH="charts/${{ matrix.chart }}"
           CHART_NAME=$(yq '.name' "${CHART_PATH}/Chart.yaml")
+          CHART_YAML_VERSION=$(yq '.version' "${CHART_PATH}/Chart.yaml")
 
           # Get the last release tag for this chart
           LAST_TAG=$(git tag --list "${CHART_NAME}-v*" --sort=-version:refname | head -n1 || echo "")
 
           if [[ -z "$LAST_TAG" ]]; then
-            # No previous release, get all commits for this chart
-            echo "No previous release found for ${CHART_NAME}"
-            COMMITS=$(git log --oneline --no-merges -- "${CHART_PATH}")
-            CURRENT_VERSION="0.0.0"
-          else
-            echo "Last release: ${LAST_TAG}"
-            COMMITS=$(git log --oneline --no-merges "${LAST_TAG}..HEAD" -- "${CHART_PATH}")
-            # Extract version from tag (chart-name-vX.Y.Z -> X.Y.Z)
-            CURRENT_VERSION=$(echo "$LAST_TAG" | sed "s/${CHART_NAME}-v//")
+            # No previous release: trust the version declared in Chart.yaml
+            echo "No previous release found for ${CHART_NAME}, using Chart.yaml version ${CHART_YAML_VERSION}"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "bump_type=initial" >> "$GITHUB_OUTPUT"
+            echo "current_version=0.0.0" >> "$GITHUB_OUTPUT"
+            echo "new_version=${CHART_YAML_VERSION}" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          echo "Last release: ${LAST_TAG}"
+          COMMITS=$(git log --oneline --no-merges "${LAST_TAG}..HEAD" -- "${CHART_PATH}")
+          # Extract version from tag (chart-name-vX.Y.Z -> X.Y.Z)
+          CURRENT_VERSION=$(echo "$LAST_TAG" | sed "s/${CHART_NAME}-v//")
 
           echo "Current version: ${CURRENT_VERSION}"
           echo "Commits since last release:"
